@@ -13,11 +13,9 @@ namespace Anfang
 {
     class Transient
     {
-        int sim_time = 0;
         int tran_time = 0;
         int sim_time_step = 0;
         int tran_time_stop = 0;
-        bool first_step = true;
         List<Complex32> currents_now_list = new List<Complex32>();
         public Vector<Complex32> currents_now = Vector<Complex32>.Build.Random(1,1);
 
@@ -39,7 +37,7 @@ namespace Anfang
         }
 
         public void Do_a_Step_Linear(Vector<Complex32> currents_start, Vector<Complex32> currents_end)
-        {
+        { //this is a test of a basic linear interpolator.
             tran_time_stop = 1000;
             Complex32 coeff = tran_time_stop / sim_time_step;
 
@@ -63,7 +61,6 @@ namespace Anfang
                     int i = 0;
                     while (i < currents_now_list.Count)
                     {
-                        //currents_now_list[i] = (Complex32)0.001 + currents_now_list[i];
                         currents_now_list[i] = ((currents_end[i] - currents_start[i]) / coeff) + currents_now_list[i];
                         i++;
                     }

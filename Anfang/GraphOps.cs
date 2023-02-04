@@ -22,7 +22,6 @@ namespace Anfang
     {
         List<int> cols_x = new List<int>();
         List<int> rows_y = new List<int>();
-        //private List<Branch> drawn_items = new List<Branch>();
         bool grid_drawn = false;
         int id = 0;
         List<Point> line_points = new List<Point>();
@@ -132,16 +131,16 @@ namespace Anfang
             }
         }
         public void CanvasLeftClick(Canvas Canvas, object sender, MouseButtonEventArgs e, string Uid, Brush color)
-        {
+        { // All-in-one method for canvas interaction.
             var clicked_object = e.OriginalSource;
 
             if (clicked_object == Canvas)
-            {
+            { // Canvas itself was clicked - we are drawing a new line
                 line_points.Add(e.GetPosition(Canvas));
                 if (line_points.Count == 2 & Uid != "")
                 {
                     if (drawn_items.Contains(Uid) == false)
-                    {
+                    { // Check whether the line is already drawn and draw it.
                         int[] point1 = SnapToGrid((int)line_points[0].X, (int)line_points[0].Y, 50);
                         int[] point2 = SnapToGrid((int)line_points[1].X, (int)line_points[1].Y, 50);
                         DrawLineCanvas(Canvas, point1[0], point1[1], point2[0], point2[1], 3, color, true, Uid);
@@ -150,13 +149,13 @@ namespace Anfang
                         line_points.TrimExcess();
                     }
                     else
-                    {
+                    { // The line is already drawn - abort.
                         line_points.Clear();
                         line_points.TrimExcess();
                     }
                 }
                 if (line_points.Count == 2 & Uid == "")
-                {
+                { // This is used to draw a generic line not linked with any branch (Uid is empty).
                     int[] point1 = SnapToGrid((int)line_points[0].X, (int)line_points[0].Y, 50);
                     int[] point2 = SnapToGrid((int)line_points[1].X, (int)line_points[1].Y, 50);
                     DrawLineCanvas(Canvas, point1[0], point1[1], point2[0], point2[1], 3, color, true, Uid);
@@ -167,7 +166,7 @@ namespace Anfang
 
             int index = Canvas.Children.IndexOf((UIElement)clicked_object);
             if (index != -1)
-            {
+            { // This is used to remove items from the canvas. Ignores the gridlines (their Uids contain "Row" or "Col" keywords).
                 if (Canvas.Children[index].Uid.Contains("Row") == false & Canvas.Children[index].Uid.Contains("Col") == false)
                 {
                     drawn_items.Remove(Canvas.Children[index].Uid);
@@ -176,7 +175,7 @@ namespace Anfang
             }
         }
         public int[] SnapToGrid (int x, int y, int gridsize)
-        {
+        { // Self - explanatory.
             int[] snapped_to_grid = new int[2];
             foreach (var col_x in cols_x)
             {
@@ -213,7 +212,7 @@ namespace Anfang
             return snapped_to_grid;
         }
         public void CanvasDisplayResults(Canvas Canvas, Vector<Complex32> currents)
-        {
+        { // Updates the whole canvas and displays results as labels.
             if (labels.Count > 0)
             {
                 foreach (var item in labels)
@@ -239,7 +238,6 @@ namespace Anfang
                         double y = ((double)Canvas.Children[i].GetValue(Line.Y1Property) + (double)Canvas.Children[i].GetValue(Line.Y2Property)) / 2;
                         label.Margin = new Thickness(x, y, 0, 0);
                         label.Foreground = new SolidColorBrush(Colors.Black);
-                        //label.Background = new SolidColorBrush(Colors.Black);
                         labels.Add(label);
                         break;
                     }
@@ -252,7 +250,7 @@ namespace Anfang
             }
         }
         public void CanvasReinitialize(Canvas Canvas)
-        {
+        { // Redraws the entire canvas. Needed to properly update the content within it.
             CanvasChildrenStorage.Clear();
             CanvasChildrenStorage.TrimExcess();
             foreach (var item in Canvas.Children)

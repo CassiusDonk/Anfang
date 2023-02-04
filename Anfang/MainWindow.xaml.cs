@@ -92,7 +92,7 @@ namespace Anfang
             }
             return output;
         }
-        public Rectangle branch (int width, int height, Brush color)
+        public Rectangle branch(int width, int height, Brush color)
         {
             System.Windows.Shapes.Rectangle rect = new Rectangle();
             rect.Width = width;
@@ -159,43 +159,43 @@ namespace Anfang
 
         private void sim_start_btn_Click(object sender, RoutedEventArgs e)
         {
-                var InOutOps = new InOutOps();
-                branches.Clear();
-                branches.TrimExcess();
-                branches = InOutOps.GetBranches_before(datagrid_collection);
+            var InOutOps = new InOutOps();
+            branches.Clear();
+            branches.TrimExcess();
+            branches = InOutOps.GetBranches_before(datagrid_collection);
 
-                var BranchOps = new BranchOps();
+            var BranchOps = new BranchOps();
 
-                currents_start = BranchOps.CalcCurrents(branches);
+            currents_start = BranchOps.CalcCurrents(branches);
 
-                branches.Clear();
-                branches.TrimExcess();
-                branches = InOutOps.GetBranches_after(datagrid_collection, shockpointgrid_collection);
+            branches.Clear();
+            branches.TrimExcess();
+            branches = InOutOps.GetBranches_after(datagrid_collection, shockpointgrid_collection);
 
-                currents_shock = BranchOps.CalcCurrents(branches);
+            currents_shock = BranchOps.CalcCurrents(branches);
 
 
-                debug_label.Content = currents_start.ToString();
-                debug_label_2.Content = currents_shock.ToString();
+            debug_label.Content = currents_start.ToString();
+            debug_label_2.Content = currents_shock.ToString();
 
-                int sim_time = 0;
-                int sim_step = 100;
+            int sim_time = 0;
+            int sim_step = 100;
 
-                Timer = new System.Timers.Timer(100);
-                Timer.Elapsed += OnTimedEvent2;
-                Timer.AutoReset = true;
-                Timer.Enabled = true;
+            Timer = new System.Timers.Timer(100);
+            Timer.Elapsed += OnTimedEvent2;
+            Timer.AutoReset = true;
+            Timer.Enabled = true;
 
-                void OnTimedEvent2(Object source, ElapsedEventArgs e)
+            void OnTimedEvent2(Object source, ElapsedEventArgs e)
+            {
+                Transient.Do_a_Step_Linear(currents_start, currents_shock);
+                Dispatcher.Invoke(() =>
                 {
-                    Transient.Do_a_Step_Linear(currents_start, currents_shock);
-                    Dispatcher.Invoke(() =>
-                    {
-                        debug_label.Content = Transient.currents_now.ToString();
-                        debug_label_2.Content = sim_time.ToString();
-                    });
-                    sim_time += sim_step;
-                }
+                    debug_label.Content = Transient.currents_now.ToString();
+                    debug_label_2.Content = sim_time.ToString();
+                });
+                sim_time += sim_step;
+            }
 
         }
     }

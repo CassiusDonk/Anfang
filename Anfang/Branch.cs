@@ -90,11 +90,9 @@ namespace Anfang
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-        {
+        { // updates complex values "E" and "Ohms" when their parents are changed.
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            //Type type = Type.GetType("Anfang.Branch");
-            //PropertyInfo propertyInfo = type.GetProperty(propertyName);
-            //propertyInfo.SetValue(type, new Complex32(), null);
+
             if (propertyName == "Ohms_Act" | propertyName == "Ohms_React")
             {
                 Ohms = new Complex32(Ohms_Act, Ohms_React);
