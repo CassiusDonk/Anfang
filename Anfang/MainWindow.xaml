@@ -1,0 +1,18 @@
+﻿<Window x:Class="Anfang.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Anfang"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="965" Width="1593">
+    <Grid>
+        <Button Content="Calculate" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="Button_Click"/>
+        <Label x:Name="debug_label" Content="Label" HorizontalAlignment="Left" Margin="1158,380,0,0" VerticalAlignment="Top" Foreground="Black"/>
+        <DataGrid x:Name="inputgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Inputgrid_AutoGeneratingColumn" HorizontalAlignment="Left" Height="300" Margin="1158,75,0,0" VerticalAlignment="Top" Width="380" CurrentCellChanged="inputgrid_CurrentCellChanged"/>
+        <Canvas x:Name="Canvas" Margin="125,75,468,474" Height="400" Width="1000" Background="#FFC5C5C5" MouseLeftButtonDown="Canvas_MouseLeftButtonDown" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded"/>
+        <DataGrid x:Name="shockpointgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Shockpointgrid_AutoGeneratingColumn" HorizontalAlignment="Left" Height="45" Margin="1158,25,0,0" VerticalAlignment="Top" Width="380" CurrentCellChanged="inputgrid_CurrentCellChanged"/>
+        <Button x:Name="sim_start_btn" Content="Start Sim" HorizontalAlignment="Left" Margin="82,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_start_btn_Click"/>
+        <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="1305,380,0,0" VerticalAlignment="Top" Foreground="Black"/>
+    </Grid>
+</Window>
