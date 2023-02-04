@@ -22,9 +22,9 @@ namespace Anfang
 {
     public class InOutOps
     {
-        public List<Branch> GetBranches_after(ObservableCollection<Branch> datagrid_collection, ObservableCollection<Branch> shockpointgrid_collection)
+        public ObservableCollection<Branch> GetBranches_after(ObservableCollection<Branch> datagrid_collection, ObservableCollection<Branch> shockpointgrid_collection)
         { // builds a lsit of branches from both datagrids.
-            List<Branch> branches = new List<Branch>();
+            ObservableCollection<Branch> branches = new ObservableCollection<Branch>();
             foreach (Branch branch in datagrid_collection)
             {
                 branches.Add(new Branch() { Number = branch.Number, Node1 = branch.Node1, Node2 = branch.Node2, Ohms_Act = branch.Ohms_Act, Ohms_React = branch.Ohms_React, E_Act = branch.E_Act, E_React = branch.E_React });
@@ -38,9 +38,9 @@ namespace Anfang
             }
             return branches;
         }
-        public List<Branch> GetBranches_before(ObservableCollection<Branch> datagrid_collection)
+        public ObservableCollection<Branch> GetBranches_before(ObservableCollection<Branch> datagrid_collection)
         { // builds a list of branches from the main datagrid only.
-            List<Branch> branches = new List<Branch>();
+            ObservableCollection<Branch> branches = new ObservableCollection<Branch>();
             foreach (Branch branch in datagrid_collection)
             {
                 branches.Add(new Branch() { Number = branch.Number, Node1 = branch.Node1, Node2 = branch.Node2, Ohms_Act = branch.Ohms_Act, Ohms_React = branch.Ohms_React, E_Act = branch.E_Act, E_React = branch.E_React });

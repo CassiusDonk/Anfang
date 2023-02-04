@@ -14,5 +14,6 @@
         <DataGrid x:Name="shockpointgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Shockpointgrid_AutoGeneratingColumn" HorizontalAlignment="Left" Height="45" Margin="1158,25,0,0" VerticalAlignment="Top" Width="380" CurrentCellChanged="inputgrid_CurrentCellChanged"/>
         <Button x:Name="sim_start_btn" Content="Start Sim" HorizontalAlignment="Left" Margin="82,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_start_btn_Click"/>
         <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="1305,380,0,0" VerticalAlignment="Top" Foreground="Black"/>
+        <Button x:Name="sim_stop_btn" Content="Stop Sim" HorizontalAlignment="Left" Margin="153,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_stop_btn_Click"/>
     </Grid>
 </Window>

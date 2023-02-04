@@ -28,18 +28,26 @@ namespace Anfang
     /// </summary>
     public partial class MainWindow : System.Windows.Window
     {
+        int sim_time = 0;
+
         GraphOps GraphOps = new GraphOps();
-        List<Branch> branches = new List<Branch>();
+
+        public ObservableCollection<Branch> branches = new ObservableCollection<Branch>();
+        public ObservableCollection<Branch> branches_end = new ObservableCollection<Branch>();
+
         private static readonly ObservableCollection<Branch> datagrid_collection = new ObservableCollection<Branch>();
         private static readonly ObservableCollection<Branch> shockpointgrid_collection = new ObservableCollection<Branch>();
+
         private List<Branch> drawn_items = new List<Branch>();
         System.Timers.Timer Timer;
         Transient Transient = new Transient(100);
-        Vector<Complex32> currents_start = Vector<Complex32>.Build.Random(1);
-        Vector<Complex32> currents_shock = Vector<Complex32>.Build.Random(1);
+        public Vector<Complex32> currents_start = Vector<Complex32>.Build.Random(1);
+        public Vector<Complex32> currents_shock = Vector<Complex32>.Build.Random(1);
         public MainWindow()
         {
             InitializeComponent();
+            branches.CollectionChanged += this.Branches_CollectionChanged;
+            branches_end.CollectionChanged += this.Branches_end_CollectionChanged;
             inputgrid.ItemsSource = datagrid_collection;
             shockpointgrid.ItemsSource = shockpointgrid_collection;
             datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
@@ -74,7 +82,7 @@ namespace Anfang
             var BranchOps = new BranchOps();
             try
             {
-                Vector<Complex32> currents = BranchOps.CalcCurrents(branches);
+                Vector<Complex32> currents = BranchOps.CalcCurrents(branches.ToList<Branch>());
                 debug_label.Content = currents.ToString();
                 GraphOps.CanvasDisplayResults(Canvas, currents);
             }
@@ -93,7 +101,7 @@ namespace Anfang
             return output;
         }
         public Rectangle branch(int width, int height, Brush color)
-        {
+        { // currently unused
             System.Windows.Shapes.Rectangle rect = new Rectangle();
             rect.Width = width;
             rect.Height = height;
@@ -101,7 +109,7 @@ namespace Anfang
             return rect;
         }
         public Ellipse node(int width, int height, Brush color)
-        {
+        { // currently unused
             System.Windows.Shapes.Ellipse ell = new Ellipse();
             ell.Width = width;
             ell.Height = height;
@@ -117,8 +125,8 @@ namespace Anfang
             return label;
         }
 
-        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) // used to draw the graph
-        {
+        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        { // Canvas interaction using GraphOps.CanvasLeftClick.
             if (inputgrid.SelectedItem == null)
             {
                 GraphOps.CanvasLeftClick(Canvas, sender, e, "", Brushes.Blue);
@@ -145,40 +153,50 @@ namespace Anfang
 
         }
 
-        private void Canvas_Loaded(object sender, RoutedEventArgs e) // used to display the grid
-        {
+        private void Canvas_Loaded(object sender, RoutedEventArgs e)
+        { // Draw the grid when canvas is loaded.
             GraphOps.DrawLineGrid(Canvas, 50);
         }
 
-        private void inputgrid_CurrentCellChanged(object sender, EventArgs e) // updates branches form datagrids when they change
-        {
+        private void inputgrid_CurrentCellChanged(object sender, EventArgs e)
+        { // Updates the list of branches from datagrids using InOutOps.GetBranches_after.
             var InOutOps = new InOutOps();
             branches.Clear();
             branches = InOutOps.GetBranches_after(datagrid_collection, shockpointgrid_collection);
         }
 
         private void sim_start_btn_Click(object sender, RoutedEventArgs e)
-        {
+        { // Simulation initiation.
+            sim_time = 0;
             var InOutOps = new InOutOps();
             branches.Clear();
-            branches.TrimExcess();
             branches = InOutOps.GetBranches_before(datagrid_collection);
 
             var BranchOps = new BranchOps();
 
-            currents_start = BranchOps.CalcCurrents(branches);
+            currents_start = BranchOps.CalcCurrents(branches.ToList<Branch>());
 
-            branches.Clear();
-            branches.TrimExcess();
-            branches = InOutOps.GetBranches_after(datagrid_collection, shockpointgrid_collection);
-
-            currents_shock = BranchOps.CalcCurrents(branches);
-
+            if (branches_end.Count > 0)
+            {
+                branches_end.Clear();
+                foreach (var branch in InOutOps.GetBranches_after(datagrid_collection, shockpointgrid_collection))
+                {
+                    branches_end.Add(branch);
+                }
+                // this will automatically calculate currents by throwing "Branches_end_CollectionChanged" event.
+            }
+            else
+            {
+                foreach (var branch in InOutOps.GetBranches_after(datagrid_collection, shockpointgrid_collection))
+                {
+                    branches_end.Add(branch);
+                }
+                // this will automatically calculate currents by throwing "Branches_end_CollectionChanged" event.
+            }
 
             debug_label.Content = currents_start.ToString();
             debug_label_2.Content = currents_shock.ToString();
 
-            int sim_time = 0;
             int sim_step = 100;
 
             Timer = new System.Timers.Timer(100);
@@ -195,8 +213,42 @@ namespace Anfang
                     debug_label_2.Content = sim_time.ToString();
                 });
                 sim_time += sim_step;
+                if (sim_time == 3000)
+                { // Test of the live changes in the topology.
+                    branches_end.RemoveAt(branches_end.Count() - 1);
+                }
             }
 
+        }
+
+        private void sim_stop_btn_Click(object sender, RoutedEventArgs e)
+        { // Stop the simulation and reset everything.
+            Timer.Enabled = false;
+            Timer.Close();
+            Transient.Reset();
+        }
+
+        private void Branches_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+
+        }
+
+        private void Branches_end_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        { // React to change in topology, restart the transient calculation
+            var BranchOps = new BranchOps();
+            if (sim_time > 0)
+            {
+                currents_start = Transient.currents_now.Clone();
+            }
+            try
+            {
+                currents_shock = BranchOps.CalcCurrents(branches_end.ToList<Branch>());
+            }
+            catch (TopologyException)
+            {
+
+            }
+            Transient.Reset();
         }
     }
 }

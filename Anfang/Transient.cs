@@ -11,13 +11,13 @@ using System.Collections.ObjectModel;
 
 namespace Anfang
 {
-    class Transient
+    public class Transient
     {
         int tran_time = 0;
         int sim_time_step = 0;
         int tran_time_stop = 0;
         List<Complex32> currents_now_list = new List<Complex32>();
-        public Vector<Complex32> currents_now = Vector<Complex32>.Build.Random(1,1);
+        public Vector<Complex32> currents_now = Vector<Complex32>.Build.Random(1, 1);
 
         public Transient(int sim_time_step)
         {
@@ -68,6 +68,14 @@ namespace Anfang
                 }
             }
             this.currents_now = Vector<Complex32>.Build.DenseOfArray(Build_array(currents_now_list));
+        }
+
+        public void Reset()
+        { // Clear all stored inforamtion, reset time.
+            this.currents_now.Clear();
+            this.currents_now_list.Clear();
+            this.currents_now_list.TrimExcess();
+            tran_time = 0;
         }
 
     }
