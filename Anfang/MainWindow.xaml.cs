@@ -43,6 +43,11 @@ namespace Anfang
         Transient Transient = new Transient(100);
         public Vector<Complex32> currents_start = Vector<Complex32>.Build.Random(1);
         public Vector<Complex32> currents_shock = Vector<Complex32>.Build.Random(1);
+
+        LogicDevices.Comparator Comparator = new LogicDevices.Comparator(); //test
+        LogicDevices.Timer LogicTimer = new LogicDevices.Timer(100); //test
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -199,6 +204,9 @@ namespace Anfang
 
             int sim_step = 100;
 
+            Comparator.triplevel = new Complex32((float)0.5, 0); // test
+            LogicTimer.delay = 2000; // test
+
             Timer = new System.Timers.Timer(100);
             Timer.Elapsed += OnTimedEvent2;
             Timer.AutoReset = true;
@@ -207,10 +215,14 @@ namespace Anfang
             void OnTimedEvent2(Object source, ElapsedEventArgs e)
             {
                 Transient.Do_a_Step_Linear(currents_start, currents_shock);
+                Comparator.input = Transient.currents_now[0]; // test
+                LogicTimer.input = Comparator.output; // test
+                LogicTimer.sim_time = sim_time; //test
                 Dispatcher.Invoke(() =>
                 {
                     debug_label.Content = Transient.currents_now.ToString();
                     debug_label_2.Content = sim_time.ToString();
+                    debug_label_3.Content = Comparator.output.ToString() + ", " + LogicTimer.output.ToString();
                 });
                 sim_time += sim_step;
                 if (sim_time == 3000)
