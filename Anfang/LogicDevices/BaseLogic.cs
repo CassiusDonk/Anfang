@@ -90,6 +90,7 @@ namespace Anfang.LogicDevices
         public int sim_time_step = 0;
 
         public bool output = false;
+        public Complex32 output_complex = new Complex32();
 
         public string label = "";
 
@@ -114,6 +115,5 @@ namespace Anfang.LogicDevices
         { // Updates output value on sim time change.
 
         }
-
     }
 }

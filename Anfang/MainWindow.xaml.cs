@@ -201,14 +201,27 @@ namespace Anfang
 
             int sim_step = 100;
 
-            List<LogicDevices.BaseLogic> logic = new List<LogicDevices.BaseLogic>();
-            logic.Add(new LogicDevices.Comparator("Kek"));
-            logic.Add(new LogicDevices.Timer("lol"));
-            logic[0].triplevel = new Complex32((float)0.5, (float)0);
-            logic[1].delay = 500;
-            logic[1].sim_time_step = 100;
+            //List<LogicDevices.BaseLogic> logic = new List<LogicDevices.BaseLogic>();
+            //logic.Add(new LogicDevices.Comparator("Kek"));
+            //logic.Add(new LogicDevices.Timer("lol"));
+            //logic[0].triplevel = new Complex32((float)0.5, (float)0);
+            //logic[1].delay = 500;
+            //logic[1].sim_time_step = 100;
 
-            Timer = new System.Timers.Timer(100);
+            Protection prot = new Protection();
+            List<String> logic_config = new List<String>();
+            logic_config.Add("analog1");
+            logic_config.Add("comp1");
+            logic_config.Add("timer1");
+            logic_config.Add("discrete1");
+            prot.logic_config = logic_config;
+            prot.sim_time_step = sim_step;
+            prot.timer_delays.Add(1000);
+            prot.tripLevels.Add(new Complex32((float)0.8, 0));
+            prot.Initiate_logic();
+
+
+            Timer = new System.Timers.Timer(200);
             Timer.Elapsed += OnTimedEvent2;
             Timer.AutoReset = true;
             Timer.Enabled = true;
@@ -216,15 +229,23 @@ namespace Anfang
             void OnTimedEvent2(Object source, ElapsedEventArgs e)
             {
                 Transient.Do_a_Step_Linear(currents_start, currents_shock);
-                logic[0].input_complex = Transient.currents_now[0];
-                logic[1].sim_time = sim_time;
-                logic[1].input_bool = logic[0].output;
+                if (prot.analogInputs.Count <= 0)
+                {
+                    prot.analogInputs.Add(Transient.currents_now[0]);
+                }
+                prot.analogInputs[0] = Transient.currents_now[0];
+                prot.sim_time = sim_time;
+                prot.EvaluateLogic();
+                //logic[0].input_complex = Transient.currents_now[0];
+                //logic[1].sim_time = sim_time;
+                //logic[1].input_bool = logic[0].output;
 
                 Dispatcher.Invoke(() =>
                 {
                     debug_label.Content = Transient.currents_now.ToString();
                     debug_label_2.Content = sim_time.ToString();
-                    debug_label_3.Content = logic[0].output.ToString() + logic[1].output.ToString();
+                    debug_label_3.Content = prot.trip;
+                    //debug_label_3.Content = logic[0].output.ToString() + logic[1].output.ToString();
                 });
                 sim_time += sim_step;
                 if (sim_time == 3000)
