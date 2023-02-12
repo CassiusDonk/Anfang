@@ -10,18 +10,18 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 
-namespace Anfang.LogicDevices
+namespace Anfang.LogicDevices 
 {
-    public class Comparator : BaseLogic
+    class AND : BaseLogic
     {
-        public Comparator(string label)
+        public AND(string label)
         {
             this.label = label;
         }
 
-        public override void NotifyInputComplexChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change. This uses a single bool input.
-            if (input_complex.Magnitude >= triplevel.Magnitude)
+        public override void NotifyInputBoolListChanged([CallerMemberName] String propertyName = "")
+        { // Updates output value on input change. This uses BoolList input.
+            if (input_bool_list.Contains(true))
             {
                 output = true;
             }
@@ -30,6 +30,5 @@ namespace Anfang.LogicDevices
                 output = false;
             }
         }
-
     }
 }

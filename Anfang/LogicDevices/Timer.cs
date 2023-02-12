@@ -12,68 +12,28 @@ using System.Runtime.CompilerServices;
 
 namespace Anfang.LogicDevices
 {
-    class Timer : INotifyPropertyChanged
+    class Timer : BaseLogic
     {
-        public bool input_old = false;
-        public bool input
+        public Timer(string label)
         {
-            get
-            {
-                return input_old;
-            }
-            set
-            {
-                if (value != this.input_old)
-                {
-                    this.input_old = value;
-                    NotifyInputChanged();
-                }
-            }
-        }
-        bool init = false;
-        public bool output = false;
-        public int delay = 0;
-        public int sim_time_old = 0;
-        public int sim_time
-        { 
-            get
-            {
-                return sim_time_old;
-            }
-            set
-            {
-                if (value != this.sim_time_old)
-                {
-                    this.sim_time_old = value;
-                    NotifySimTimeChanged();
-                }
-            }
-        }
-        public int internal_time = 0;
-        public int sim_time_step = 0;
-        public Timer(int sim_time_step)
-        {
-            this.sim_time_step = sim_time_step;
+            this.label = label;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyInputChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change.
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            if (input == true)
+        public override void NotifyInputBoolChanged([CallerMemberName] String propertyName = "")
+        { // Updates output value on input change. This uses a single bool input.
+            if (input_bool == true)
             {
                 init = true;
             }
-            if (input == false)
+            if (input_bool == false)
             {
                 output = false;
                 init = false;
             }
         }
 
-        private void NotifySimTimeChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change.
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public override void NotifySimTimeChanged([CallerMemberName] String propertyName = "")
+        { // Updates output value on sim time change.
             if (sim_time == 0)
             {
                 output = false;
@@ -82,7 +42,7 @@ namespace Anfang.LogicDevices
             {
                 if (internal_time >= delay)
                 {
-                    output = input;
+                    output = input_bool;
                     internal_time = 0;
                     init = false;
                 }

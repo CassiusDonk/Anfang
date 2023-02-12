@@ -12,24 +12,17 @@ using System.Runtime.CompilerServices;
 
 namespace Anfang.LogicDevices
 {
-    public class Comparator : BaseLogic
+    public class DiscrSignal : BaseLogic
     {
-        public Comparator(string label)
+        
+        public DiscrSignal(string label)
         {
             this.label = label;
         }
 
-        public override void NotifyInputComplexChanged([CallerMemberName] String propertyName = "")
+        public override void NotifyInputBoolChanged([CallerMemberName] String propertyName = "")
         { // Updates output value on input change. This uses a single bool input.
-            if (input_complex.Magnitude >= triplevel.Magnitude)
-            {
-                output = true;
-            }
-            else
-            {
-                output = false;
-            }
+            output = input_bool;
         }
-
     }
 }

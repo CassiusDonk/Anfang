@@ -44,9 +44,6 @@ namespace Anfang
         public Vector<Complex32> currents_start = Vector<Complex32>.Build.Random(1);
         public Vector<Complex32> currents_shock = Vector<Complex32>.Build.Random(1);
 
-        LogicDevices.Comparator Comparator = new LogicDevices.Comparator(); //test
-        LogicDevices.Timer LogicTimer = new LogicDevices.Timer(100); //test
-
 
         public MainWindow()
         {
@@ -204,8 +201,12 @@ namespace Anfang
 
             int sim_step = 100;
 
-            Comparator.triplevel = new Complex32((float)0.5, 0); // test
-            LogicTimer.delay = 2000; // test
+            List<LogicDevices.BaseLogic> logic = new List<LogicDevices.BaseLogic>();
+            logic.Add(new LogicDevices.Comparator("Kek"));
+            logic.Add(new LogicDevices.Timer("lol"));
+            logic[0].triplevel = new Complex32((float)0.5, (float)0);
+            logic[1].delay = 500;
+            logic[1].sim_time_step = 100;
 
             Timer = new System.Timers.Timer(100);
             Timer.Elapsed += OnTimedEvent2;
@@ -215,14 +216,15 @@ namespace Anfang
             void OnTimedEvent2(Object source, ElapsedEventArgs e)
             {
                 Transient.Do_a_Step_Linear(currents_start, currents_shock);
-                Comparator.input = Transient.currents_now[0]; // test
-                LogicTimer.input = Comparator.output; // test
-                LogicTimer.sim_time = sim_time; //test
+                logic[0].input_complex = Transient.currents_now[0];
+                logic[1].sim_time = sim_time;
+                logic[1].input_bool = logic[0].output;
+
                 Dispatcher.Invoke(() =>
                 {
                     debug_label.Content = Transient.currents_now.ToString();
                     debug_label_2.Content = sim_time.ToString();
-                    debug_label_3.Content = Comparator.output.ToString() + ", " + LogicTimer.output.ToString();
+                    debug_label_3.Content = logic[0].output.ToString() + logic[1].output.ToString();
                 });
                 sim_time += sim_step;
                 if (sim_time == 3000)
@@ -231,6 +233,22 @@ namespace Anfang
                 }
             }
 
+        }
+
+        public object GetInstance(string strFullyQualifiedName)
+        {
+            Type type = Type.GetType(strFullyQualifiedName);
+            if (type != null)
+            {
+                return Activator.CreateInstance(type);
+            }
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                type = asm.GetType(strFullyQualifiedName);
+                if (type != null)
+                    return Activator.CreateInstance(type);
+            }
+            return null;
         }
 
         private void sim_stop_btn_Click(object sender, RoutedEventArgs e)
