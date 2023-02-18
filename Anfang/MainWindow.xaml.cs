@@ -212,12 +212,16 @@ namespace Anfang
             List<String> logic_config = new List<String>();
             logic_config.Add("analog1");
             logic_config.Add("comp1");
+            logic_config.Add("analog2");
+            logic_config.Add("comp2");
+            logic_config.Add("and1");
             logic_config.Add("timer1");
             logic_config.Add("discrete1");
             prot.logic_config = logic_config;
             prot.sim_time_step = sim_step;
             prot.timer_delays.Add(1000);
-            prot.tripLevels.Add(new Complex32((float)0.8, 0));
+            prot.tripLevels.Add(new Complex32((float)0.5, 0));
+            prot.tripLevels.Add(new Complex32((float)0.0, 0));
             prot.Initiate_logic();
 
 
@@ -232,8 +236,10 @@ namespace Anfang
                 if (prot.analogInputs.Count <= 0)
                 {
                     prot.analogInputs.Add(Transient.currents_now[0]);
+                    prot.analogInputs.Add(Transient.currents_now[1]);
                 }
                 prot.analogInputs[0] = Transient.currents_now[0];
+                prot.analogInputs[1] = Transient.currents_now[1];
                 prot.sim_time = sim_time;
                 prot.EvaluateLogic();
                 //logic[0].input_complex = Transient.currents_now[0];

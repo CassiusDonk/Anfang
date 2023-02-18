@@ -79,17 +79,19 @@ namespace Anfang
             int delayNumber = 0;
 
             int i = 0; // current device
-            foreach (var logic_device in logic_devices)
+            foreach (var logic_device in logic_devices) // iterate through devices and build connections
             {
                 int n = 0; // next device
                 n = i + 1;
 
                 if (logic_device.GetType() == analog)
                 {
-                    logic_device.input_complex = analogInputs[analogInputNumber];
+                    logic_device.input_complex = analogInputs[analogInputNumber]; // connect analog value to this analog signal
                     analogInputNumber++;
                     if (logic_devices[n].GetType() == comp)
                     {
+                        logic_devices[n].triplevel = tripLevels[triplevelNumber];
+                        triplevelNumber++;
                         logic_devices[n].input_complex = logic_device.output_complex;
                     }
                 }
@@ -99,11 +101,6 @@ namespace Anfang
                     logic_device.GetType() == or |
                     logic_device.GetType() == timer)
                 {
-                    if (logic_device.GetType() == comp) // set comparator params
-                    {
-                        logic_device.triplevel = tripLevels[triplevelNumber];
-                        triplevelNumber++;
-                    }
                     if (logic_device.GetType() == timer) // set timer params
                     {
                         logic_device.delay = timer_delays[delayNumber];
@@ -113,13 +110,18 @@ namespace Anfang
                     }
                     while (true) // find next suitable logic device and connect to it
                     {
-                        if (logic_devices[n].GetType() == and |
-                        logic_devices[n].GetType() == discr |
+                        if (logic_devices[n].GetType() == discr |
                         logic_devices[n].GetType() == invert |
-                        logic_devices[n].GetType() == or |
                         logic_devices[n].GetType() == timer)
                         {
                             logic_devices[n].input_bool = logic_device.output;
+                            break;
+                        }
+                        if (logic_devices[n].GetType() == and |
+                        logic_devices[n].GetType() == or)
+                        {
+                            logic_devices[n].sim_time = sim_time; // this lets the device know the new cycle started
+                            logic_devices[n].input_bool_list.Add(logic_device.output);
                             break;
                         }
                         else

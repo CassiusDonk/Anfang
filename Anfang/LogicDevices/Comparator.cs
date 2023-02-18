@@ -21,13 +21,10 @@ namespace Anfang.LogicDevices
 
         public override void NotifyInputComplexChanged([CallerMemberName] String propertyName = "")
         { // Updates output value on input change. This uses a single bool input.
+            output = false;
             if (input_complex.Magnitude >= triplevel.Magnitude)
             {
                 output = true;
-            }
-            else
-            {
-                output = false;
             }
         }
 

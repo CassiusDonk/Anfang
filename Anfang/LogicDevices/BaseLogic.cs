@@ -7,6 +7,8 @@ using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using System.ComponentModel;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 
@@ -48,22 +50,7 @@ namespace Anfang.LogicDevices
             }
         }
 
-        public List<bool> input_bool_list_old = new List<bool>();
-        public List<bool> input_bool_list
-        {
-            get
-            {
-                return input_bool_list_old;
-            }
-            set
-            {
-                if (value != this.input_bool_list_old)
-                {
-                    this.input_bool_list_old = value;
-                    NotifyInputBoolListChanged();
-                }
-            }
-        }
+        public ObservableCollection<bool> input_bool_list = new ObservableCollection<bool>();
 
         public bool init = false;
         public int delay = 0;
@@ -96,17 +83,22 @@ namespace Anfang.LogicDevices
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public BaseLogic()
+        {
+            input_bool_list.CollectionChanged += NotifyInputBoolListChanged;
+        }
+
+        public virtual void NotifyInputBoolListChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+
+        }
+
         public virtual void NotifyInputComplexChanged([CallerMemberName] String propertyName = "")
         { // Updates output value on input change.
 
         }
 
         public virtual void NotifyInputBoolChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change.
-
-        }
-
-        public virtual void NotifyInputBoolListChanged([CallerMemberName] String propertyName = "")
         { // Updates output value on input change.
 
         }

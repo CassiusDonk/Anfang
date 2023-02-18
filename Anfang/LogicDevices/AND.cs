@@ -19,9 +19,9 @@ namespace Anfang.LogicDevices
             this.label = label;
         }
 
-        public override void NotifyInputBoolListChanged([CallerMemberName] String propertyName = "")
+        public override void NotifyInputBoolListChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         { // Updates output value on input change. This uses BoolList input.
-            if (input_bool_list.Contains(true))
+            if (input_bool_list.Contains(false) == false)
             {
                 output = true;
             }
@@ -29,6 +29,10 @@ namespace Anfang.LogicDevices
             {
                 output = false;
             }
+        }
+        public override void NotifySimTimeChanged([CallerMemberName] string propertyName = "")
+        { // clears input_bool_list on new sim cycle. Have to feed sim_time before updating inputs!
+            input_bool_list.Clear();
         }
     }
 }
