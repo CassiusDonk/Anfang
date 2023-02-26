@@ -10,6 +10,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Reflection;
+using System.Collections.ObjectModel;
+using System.Timers;
+using System.Globalization;
+using System.Windows.Threading;
 
 namespace Anfang
 {
@@ -87,6 +91,12 @@ namespace Anfang
         public bool Direction { get; set; }
         public bool Reversed { get; set; }
 
+        public bool Enabled { get; set; }
+
+        public bool IsBreaker { get; set; }
+
+        public Complex32 Current { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
@@ -101,6 +111,24 @@ namespace Anfang
             {
                 E = new Complex32(E_Act, E_React);
             }
+        }
+
+        public Branch CrateCopy(Branch branch_original)
+        {
+            Branch branch_copy = new Branch();
+
+            PropertyInfo[] properties_original = branch_original.GetType().GetProperties();
+            PropertyInfo[] properties_copy = branch_copy.GetType().GetProperties();
+            int i = 0;
+
+            foreach (var property in properties_original)
+            {
+                object original_property_value = property.GetValue(branch_original);
+                properties_copy[i].SetValue(branch_copy, original_property_value);
+                i++;
+            }
+
+            return branch_copy;
         }
     }
 }

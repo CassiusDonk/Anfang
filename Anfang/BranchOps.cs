@@ -3,15 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System.Data;
+using System.Collections.ObjectModel;
+using System.Timers;
+using System.Globalization;
+using System.Windows.Threading;
 
 namespace Anfang
 {
     public class BranchOps
     {
         List<List<Branch>> output_loops = new List<List<Branch>>();
+        public bool collection_changed = false;
+        Transient transient = new Transient();
+        CustomObservable branches_old = new CustomObservable();
+        Vector<Complex32> currents = Vector<Complex32>.Build.Random(1);
         public BranchOps()
         {
         }
@@ -286,8 +304,33 @@ namespace Anfang
             }
             return EVector;
         }
-        public Vector<Complex32> CalcCurrents(List<Branch> input)
+        public Vector<Complex32> CalcCurrents(CustomObservable input_raw)
         {
+            List<Branch> input = new List<Branch>();
+            foreach (var branch in input_raw)
+            {
+                if (branch.IsBreaker == true)
+                {
+                    branch.E_Act = 0;
+                    branch.E_React = 0;
+                    if (branch.Enabled == false)
+                    {
+                        branch.Ohms_Act = 999999999;
+                        branch.Ohms_React = 999999999;
+                    }
+                    else
+                    {
+                        branch.Ohms_Act = 0;
+                        branch.Ohms_React = 0;
+                    }
+                    input.Add(branch);
+                }
+                else
+                {
+                    input.Add(branch);
+                }
+            }
+
             Complex32[,] matrix = BuildMatrix(input);
             Complex32[] evector = BuildEVector(GetLoops(input, input[0], true), input.Count);
 
@@ -295,6 +338,153 @@ namespace Anfang
             var evector_num = Vector<Complex32>.Build.DenseOfArray(evector);
             Vector<Complex32> currents_num = matrix_num.Solve(evector_num);
             return currents_num;
+        }
+        public void CalcCurrents_to_branches(CustomObservable input_raw, bool force_update_event)
+        {
+            List<Branch> input = new List<Branch>();
+            foreach (var branch in input_raw)
+            {
+                if (branch.IsBreaker == true)
+                {
+                    branch.E_Act = 0;
+                    branch.E_React = 0;
+                    if (branch.Enabled == false)
+                    {
+                        branch.Ohms_Act = 999999999;
+                        branch.Ohms_React = 999999999;
+                    }
+                    else
+                    {
+                        branch.Ohms_Act = 0;
+                        branch.Ohms_React = 0;
+                    }
+                    input.Add(branch);
+                }
+                else
+                {
+                    input.Add(branch);
+                }
+            }
+
+            Complex32[,] matrix = BuildMatrix(input);
+            Complex32[] evector = BuildEVector(GetLoops(input, input[0], true), input.Count);
+
+            var matrix_num = Matrix<Complex32>.Build.DenseOfArray(matrix);
+            var evector_num = Vector<Complex32>.Build.DenseOfArray(evector);
+            Vector<Complex32> currents_num = matrix_num.Solve(evector_num);
+            int i = 0;
+            foreach (var current in currents_num)
+            {
+                input_raw.UpdateProperty(input_raw[i], "Current", current, force_update_event);
+                i++;
+            }
+        }
+        public void CalcTranCurrents_to_branches(CustomObservable branches, int sim_time_step)
+        {
+            // First we have to determine whether any changes occured to topology.
+            // Changes can occur in two main ways: new branch is added and "Enabled" property is changed.
+            // First one is easy, just compare the Count of collections.
+            // Second one is more tricky. We could compare each individual IsBreaker branch, but
+            // this might be too taxing in terms of perfomance.
+            // It would be much faster to rely on CollectionChanged event implemented in the main program.
+            // When event is triggered we set CollectionChanged declared here as "true".
+            // Inportant: we have to set CollectionChanged back to false at the end of the cycle.
+
+            // If changes occured (CollectionChanged = true), we first check whether transient calculation is already running.
+            if (collection_changed == true)
+            {
+                // If it isn't, we calculate currents before and after and start the transient calculation.
+                if (transient.enabled == false)
+                {
+                    Vector<Complex32> currents_start = CalcCurrents(branches_old);
+                    Vector<Complex32> currents_end = CalcCurrents(branches);
+
+                    // It will also be easier to feed currents before and after to the Transient class and store them there.
+                    transient.currents_start = currents_start.Clone(); // .Clone() is used to create a completely independent copy.
+                    transient.currents_end = currents_end.Clone();
+                    transient.enabled = true;
+                    transient.sim_time_step = sim_time_step;
+                    transient.Do_a_Step_Linear();
+                }
+
+                // If it is, we use currents at this moment as "start" currents, and calculate only "end" currents,
+                // then restart the transient calculation.
+                else
+                {
+                    Vector<Complex32> currents_start = transient.currents_now.Clone();
+                    Vector<Complex32> currents_end = CalcCurrents(branches);
+
+                    transient.Reset();
+
+                    transient.currents_start = currents_start.Clone();
+                    transient.currents_end = currents_end.Clone();
+                    transient.enabled = true;
+                    transient.sim_time_step = sim_time_step;
+                    transient.Do_a_Step_Linear();
+                }
+
+                // update currents in branches
+                currents = transient.currents_now.Clone();
+                int i = 0;
+                foreach (var current in currents)
+                {
+                    branches.UpdateProperty(branches[i], "Current", current, false);
+                    i++;
+                }
+                collection_changed = false;
+            }
+
+            // If no changes occured:
+            else
+            {
+                // First we check if transient calculation is enabled.
+                // If it is, we perform a step.
+                if (transient.enabled == true)
+                {
+                    transient.Do_a_Step_Linear();
+                    currents = transient.currents_now.Clone();
+                    int i = 0;
+                    foreach (var current in currents)
+                    {
+                        branches.UpdateProperty(branches[i], "Current", current, false);
+                        i++;
+                    }
+                }
+
+                else
+                {
+                    // If it isn't, we check if have any currents calculated at all.
+                    if (currents.Count() > 1)
+                    {
+                        // If currents are present, we do nothing.
+                    }
+                    else
+                    {
+                        // If there are no currents, we calculate them.
+                        currents = CalcCurrents(branches).Clone();
+                        int i = 0;
+                        foreach (var current in currents)
+                        {
+                            branches.UpdateProperty(branches[i], "Current", current, false);
+                            i++;
+                        }
+                    }
+                }
+
+            }
+            branches_old.Clear();
+            foreach (var branch in branches)
+            {
+                branches_old.Add(branch);
+            }
+        }
+
+        public void ResetTran()
+        {
+            transient.Reset();
+            collection_changed = false;
+            branches_old.Clear();
+            currents = Vector<Complex32>.Build.Random(1);
         }
         public Vector<Complex32> CalcShockCurrents(List<Branch> input, int shocknode, Complex32 shockresistance)
         {

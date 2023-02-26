@@ -27,23 +27,53 @@ namespace Anfang
             ObservableCollection<Branch> branches = new ObservableCollection<Branch>();
             foreach (Branch branch in datagrid_collection)
             {
-                branches.Add(new Branch() { Number = branch.Number, Node1 = branch.Node1, Node2 = branch.Node2, Ohms_Act = branch.Ohms_Act, Ohms_React = branch.Ohms_React, E_Act = branch.E_Act, E_React = branch.E_React });
+                branches.Add(new Branch() 
+                { 
+                    Number = branch.Number, 
+                    Node1 = branch.Node1, 
+                    Node2 = branch.Node2, 
+                    Ohms_Act = branch.Ohms_Act, 
+                    Ohms_React = branch.Ohms_React, 
+                    E_Act = branch.E_Act, 
+                    E_React = branch.E_React,
+                    Enabled = branch.Enabled,
+                    IsBreaker = branch.IsBreaker
+                });
             }
             if (shockpointgrid_collection.Count > 0)
             {
                 foreach (Branch branch in shockpointgrid_collection)
                 {
-                    branches.Add(new Branch() { Number = branches.Count + 1, Node1 = branch.Node1, Node2 = 0, Ohms_Act = branch.Ohms_Act, Ohms_React = branch.Ohms_React, E_Act = 0, E_React = 0 });
+                    branches.Add(new Branch() 
+                    { 
+                        Number = branches.Count + 1, 
+                        Node1 = branch.Node1, Node2 = 0, 
+                        Ohms_Act = branch.Ohms_Act, 
+                        Ohms_React = branch.Ohms_React, 
+                        E_Act = 0, 
+                        E_React = 0 
+                    });
                 }
             }
             return branches;
         }
-        public ObservableCollection<Branch> GetBranches_before(ObservableCollection<Branch> datagrid_collection)
+        public CustomObservable GetBranches_before(ObservableCollection<Branch> datagrid_collection)
         { // builds a list of branches from the main datagrid only.
-            ObservableCollection<Branch> branches = new ObservableCollection<Branch>();
+            CustomObservable branches = new CustomObservable();
             foreach (Branch branch in datagrid_collection)
             {
-                branches.Add(new Branch() { Number = branch.Number, Node1 = branch.Node1, Node2 = branch.Node2, Ohms_Act = branch.Ohms_Act, Ohms_React = branch.Ohms_React, E_Act = branch.E_Act, E_React = branch.E_React });
+                branches.Add(new Branch() 
+                { 
+                    Number = branch.Number, 
+                    Node1 = branch.Node1, 
+                    Node2 = branch.Node2, 
+                    Ohms_Act = branch.Ohms_Act, 
+                    Ohms_React = branch.Ohms_React, 
+                    E_Act = branch.E_Act, 
+                    E_React = branch.E_React,
+                    Enabled = branch.Enabled,
+                    IsBreaker = branch.IsBreaker
+                });
             }
             return branches;
         }

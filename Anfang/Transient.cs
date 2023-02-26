@@ -14,14 +14,17 @@ namespace Anfang
     public class Transient
     {
         int tran_time = 0;
-        int sim_time_step = 0;
+        public int sim_time_step = 0;
         int tran_time_stop = 0;
+        public bool enabled = false;
+
         List<Complex32> currents_now_list = new List<Complex32>();
+        public Vector<Complex32> currents_start = Vector<Complex32>.Build.Random(1, 1);
+        public Vector<Complex32> currents_end = Vector<Complex32>.Build.Random(1, 1);
         public Vector<Complex32> currents_now = Vector<Complex32>.Build.Random(1, 1);
 
-        public Transient(int sim_time_step)
+        public Transient()
         {
-            this.sim_time_step = sim_time_step;
         }
 
         public Complex32[] Build_array(List<Complex32> currents_now_list)
@@ -36,8 +39,9 @@ namespace Anfang
             return currents_now_array;
         }
 
-        public void Do_a_Step_Linear(Vector<Complex32> currents_start, Vector<Complex32> currents_end)
+        public void Do_a_Step_Linear()
         { //this is a test of a basic linear interpolator.
+            enabled = true;
             tran_time_stop = 1000;
             Complex32 coeff = tran_time_stop / sim_time_step;
 
@@ -73,9 +77,12 @@ namespace Anfang
         public void Reset()
         { // Clear all stored inforamtion, reset time.
             this.currents_now.Clear();
+            this.currents_end.Clear();
+            this.currents_start.Clear();
             this.currents_now_list.Clear();
             this.currents_now_list.TrimExcess();
             tran_time = 0;
+            enabled = false;
         }
 
     }

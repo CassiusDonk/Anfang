@@ -211,7 +211,7 @@ namespace Anfang
             }
             return snapped_to_grid;
         }
-        public void CanvasDisplayResults(Canvas Canvas, Vector<Complex32> currents)
+        public void CanvasDisplayResults(Canvas Canvas, CustomObservable branches)
         { // Updates the whole canvas and displays results as labels.
             if (labels.Count > 0)
             {
@@ -224,14 +224,14 @@ namespace Anfang
             }
             CanvasReinitialize(Canvas);
             int index_current = 1;
-            foreach (var current in currents)
+            foreach (var branch in branches)
             {
                 for (int i = 0; i <= Canvas.Children.Count - 1; i++)
                 {
                     if (Canvas.Children[i].Uid == "Branch" + index_current.ToString() & drawn_items.Contains("Branch" + index_current.ToString()))
                     {
                         Label label = new Label();
-                        label.Content = current.ToString();
+                        label.Content = branch.Current.ToString();
                         label.Width = 300;
                         label.Height = 30;
                         double x = ((double)Canvas.Children[i].GetValue(Line.X1Property) + (double)Canvas.Children[i].GetValue(Line.X2Property)) / 2;

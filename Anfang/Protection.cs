@@ -20,6 +20,9 @@ namespace Anfang
         public int sim_time_step = 0;
         public bool init = false;
         public bool trip = false;
+        public string label { get; set; }
+        public string init_label { get; set; }
+        public string trip_label { get; set; }
 
         List<LogicDevices.BaseLogic> logic_devices = new List<LogicDevices.BaseLogic>();
 
@@ -130,9 +133,13 @@ namespace Anfang
                         }
                     }
                 }
-                if (logic_device.GetType() == discr) 
+                if (init_label != "")
                 {
-                    this.trip = logic_device.output;
+                    this.init = logic_devices.Find(x => x.label == init_label).output;
+                }
+                if (trip_label != "")
+                {
+                    this.trip = logic_devices.Find(x => x.label == trip_label).output;
                 }
                 i++;
             }
@@ -155,7 +162,5 @@ namespace Anfang
             }
             return type;
         }
-
-
     }
 }

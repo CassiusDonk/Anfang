@@ -12,11 +12,19 @@ using System.Runtime.CompilerServices;
 
 namespace Anfang.LogicDevices
 {
-    class Invert : BaseLogic
+    public class Invert : BaseLogic
     {
         public Invert(string label)
         {
             this.label = label;
+            if (input_bool == true)
+            {
+                output = false;
+            }
+            if (input_bool == false)
+            {
+                output = true;
+            }
         }
 
         public override void NotifyInputBoolChanged([CallerMemberName] String propertyName = "")
