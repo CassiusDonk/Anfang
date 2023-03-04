@@ -29,12 +29,18 @@ namespace Anfang
         private static readonly ObservableCollection<Branch> outputgrid_collection = new ObservableCollection<Branch>();
         private static readonly ObservableCollection<Protection> protectiongrid_collection = new ObservableCollection<Protection>();
         private static readonly ObservableCollection<LogicString> logicgrid_collection = new ObservableCollection<LogicString>();
+        private static readonly ObservableCollection<TripLevels> tripgrid_collection = new ObservableCollection<TripLevels>();
+        private static readonly ObservableCollection<TimerDelays> delaygrid_collection = new ObservableCollection<TimerDelays>();
+        private static readonly ObservableCollection<AnalogInputLink> analogsgrid_collection = new ObservableCollection<AnalogInputLink>();
+        private static readonly ObservableCollection<BreakerLink> breakersgrid_collection = new ObservableCollection<BreakerLink>();
 
         System.Timers.Timer Timer;
 
         public ObservableCollection<Protection> protections = new ObservableCollection<Protection>();
 
-        public Protection protectiongrid_selecteditem = new Protection();
+        public Protection protectiongrid_selecteditem { get; set; }
+
+        //public Protection protectiongrid_selecteditem_old = new Protection();
 
         public MainWindow()
         {
@@ -49,6 +55,10 @@ namespace Anfang
             outputgrid.ItemsSource = outputgrid_collection;
             protectiongrid.ItemsSource = protectiongrid_collection;
             logicgrid.ItemsSource = logicgrid_collection;
+            tripgrid.ItemsSource = tripgrid_collection;
+            delaygrid.ItemsSource = delaygrid_collection;
+            analogsgrid.ItemsSource = analogsgrid_collection;
+            breakersgrid.ItemsSource = breakersgrid_collection;
         }
 
         private void Inputgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -158,27 +168,69 @@ namespace Anfang
 
         private void protectiongrid_CurrentCellChanged_1(object sender, EventArgs e)
         {
-            logicgrid_collection.Clear();
+            //logicgrid_collection.Clear();
             protections.Clear();
             foreach (var protection in protectiongrid_collection)
             {
                 protections.Add(protection);
             }
-            try
+        }
+
+        private void protectiongrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        { // Update all conncected grids - retrive properties from the currently selected protection
+            logicgrid_collection.Clear();
+            tripgrid_collection.Clear();
+            delaygrid_collection.Clear();
+            analogsgrid_collection.Clear();
+            breakersgrid_collection.Clear();
+            if (protectiongrid.SelectedItem != null)
             {
-                if (protectiongrid.SelectedItem != null)
+                if (protectiongrid.SelectedItem.ToString() == "Anfang.Protection")
                 {
                     protectiongrid_selecteditem = (Protection)protectiongrid.SelectedItem;
-                    foreach (var item in protections[protections.IndexOf(protectiongrid_selecteditem)].logic_config)
+                }
+                else
+                {
+                    protectiongrid_selecteditem = null;
+                }
+            }
+            else
+            {
+                protectiongrid_selecteditem = null;
+            }
+
+            if (protectiongrid_selecteditem != null)
+            {
+                if (protectiongrid_selecteditem.ToString() == "Anfang.Protection")
+                {
+                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].logic_config)
                     {
                         logicgrid_collection.Add(new LogicString() { logic_string = item });
                     }
+                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].tripLevels)
+                    {
+                        tripgrid_collection.Add(new TripLevels() { Trip_Act = item.Real, Trip_React = item.Imaginary });
+                    }
+                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].timer_delays)
+                    {
+                        delaygrid_collection.Add(new TimerDelays { delay = item });
+                    }
+                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].analogInputLinks)
+                    {
+                        analogsgrid_collection.Add(new AnalogInputLink { isVoltage = item.isVoltage, index = item.index } );
+                    }
+                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].breaker_numbers)
+                    {
+                        breakersgrid_collection.Add(new BreakerLink() { branchNumber = item });
+                    }
+                }
+                else
+                {
+                    debug_label_2.Content = protectiongrid_selecteditem;
+                    protectiongrid_selecteditem = null;
                 }
             }
-            catch (System.InvalidCastException)
-            {
-
-            }
+            debug_label_2.Content = protectiongrid_selecteditem;
         }
 
         private void logicgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -188,27 +240,96 @@ namespace Anfang
 
         private void logicgrid_CurrentCellChanged(object sender, EventArgs e)
         {
-            try
+            if (protectiongrid_selecteditem != null)
             {
+                protections[protections.IndexOf(protectiongrid_selecteditem)].logic_config.Clear();
                 foreach (var item in logicgrid_collection)
                 {
                     if (item.logic_string != "")
                     {
-                        try
-                        {
-
-                        }
-                        catch (System.InvalidCastException)
-                        {
-
-                        }
                         protections[protections.IndexOf(protectiongrid_selecteditem)].logic_config.Add(item.logic_string);
                     }
                 }
             }
-            catch (System.InvalidCastException)
-            {
+        }
 
+        private void logicgrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void tripgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+
+        }
+
+        private void tripgrid_CurrentCellChanged(object sender, EventArgs e)
+        {
+            if (protectiongrid_selecteditem != null)
+            {
+                protections[protections.IndexOf(protectiongrid_selecteditem)].tripLevels.Clear();
+                foreach (var item in tripgrid_collection)
+                {
+                    if (item.Trip_Act.GetType().ToString() == "System.Single" & item.Trip_React.GetType().ToString() == "System.Single")
+                    {
+                        protections[protections.IndexOf(protectiongrid_selecteditem)].tripLevels.Add(item.TripLevel);
+                    }
+                    debug_label_3.Content = item.Trip_React.GetType().ToString();
+                }
+            }
+        }
+
+        private void delaygrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+
+        }
+
+        private void delaygrid_CurrentCellChanged(object sender, EventArgs e)
+        {
+            protections[protections.IndexOf(protectiongrid_selecteditem)].timer_delays.Clear();
+            foreach (var item in delaygrid_collection)
+            {
+                if (item.delay.GetType().ToString() == "System.Int32")
+                {
+                    protections[protections.IndexOf(protectiongrid_selecteditem)].timer_delays.Add(item.delay);
+                }
+                debug_label_3.Content = item.delay.GetType().ToString();
+            }
+        }
+
+        private void analogsgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+
+        }
+
+        private void analogsgrid_CurrentCellChanged(object sender, EventArgs e)
+        {
+            protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Clear();
+            foreach (var item in analogsgrid_collection)
+            {
+                if (item.index.GetType().ToString() == "System.Int32")
+                {
+                    protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Add(
+                        new AnalogInputLink() { isVoltage = item.isVoltage, index = item.index });
+                }
+                debug_label_3.Content = item.index.GetType().ToString();
+            }
+        }
+
+        private void breakersgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+
+        }
+
+        private void breakersgrid_CurrentCellChanged(object sender, EventArgs e)
+        {
+            protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Clear();
+            foreach (var item in breakersgrid_collection)
+            {
+                if (item.branchNumber.GetType().ToString() == "System.Int32")
+                {
+                    protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Add(item.branchNumber);
+                }
             }
         }
 
@@ -313,6 +434,10 @@ namespace Anfang
             prot.tripLevels.Add(new Complex32((float)0.5, 0));
             prot.tripLevels.Add(new Complex32((float)0.5, 0));
             prot.Initiate_logic();
+            prot.analogInputs.Add(branches[0].Current);
+            prot.analogInputs.Add(branches[1].Current);
+            prot.analogInputs[0] = branches[0].Current;
+            prot.analogInputs[1] = branches[1].Current;
 
 
             Timer = new System.Timers.Timer(200);
@@ -331,13 +456,13 @@ namespace Anfang
                     }
                 }
                 branchOps.CalcTranCurrents_to_branches(branches, sim_step);
-                if (prot.analogInputs.Count <= 0)
-                {
-                    prot.analogInputs.Add(branches[0].Current);
-                    prot.analogInputs.Add(branches[1].Current);
-                }
-                prot.analogInputs[0] = branches[0].Current;
-                prot.analogInputs[1] = branches[1].Current;
+                //if (prot.analogInputs.Count <= 0)
+                //{
+                    //prot.analogInputs.Add(branches[0].Current);
+                    //prot.analogInputs.Add(branches[1].Current);
+                //}
+                //prot.analogInputs[0] = branches[0].Current;
+                //prot.analogInputs[1] = branches[1].Current;
                 prot.sim_time = sim_time;
                 prot.EvaluateLogic();
 

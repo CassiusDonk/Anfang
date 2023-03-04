@@ -24,7 +24,11 @@ namespace Anfang
         public string init_label { get; set; }
         public string trip_label { get; set; }
 
-        List<LogicDevices.BaseLogic> logic_devices = new List<LogicDevices.BaseLogic>();
+        public List<LogicDevices.BaseLogic> logic_devices = new List<LogicDevices.BaseLogic>();
+
+        public List<AnalogInputLink> analogInputLinks = new List<AnalogInputLink>();
+
+        public List<int> breaker_numbers = new List<int>();
 
         public Protection()
         {
@@ -145,6 +149,63 @@ namespace Anfang
             }
         }
 
+        public void getAnalogs(CustomObservable branches)
+        {
+
+            if (analogInputs.Count() == 0)
+            {
+                foreach (var analogInputLink in analogInputLinks)
+                {
+                    if (analogInputLink.isVoltage == false) // Analog value is a current, searching in branches
+                    {
+                        analogInputs.Add(FindBranch(analogInputLink.index).Current);
+                    }
+                    else // analog value is a voltage, searching in nodes
+                    {
+
+                    }
+                }
+            }
+            else
+            {
+                int i = 0;
+                foreach (var analogInputLink in analogInputLinks)
+                {
+                    if (analogInputLink.isVoltage == false) // Analog value is a current, searching in branches
+                    {
+                        analogInputs[i] = FindBranch(analogInputLink.index).Current;
+                    }
+                    else // analog value is a voltage, searching in nodes
+                    {
+
+                    }
+                    i++;
+                }
+            }
+
+            Branch FindBranch(int Number)
+            {
+                Branch result = new Branch();
+                foreach (var branch in branches)
+                {
+                    if (branch.Number == Number)
+                    {
+                        result = branch;
+                        break;
+                    }
+                }
+                return result;
+            }
+        }
+
+        public void TripBreakers(CustomObservable branches)
+        {
+            foreach (var breaker_number in breaker_numbers)
+            {
+                branches.UpdateProperty(branches[breaker_number - 1], "Enabeld", false, true);
+            }
+        }
+
         public Type GetType(string strFullyQualifiedName)
         {
             Type type = Type.GetType(strFullyQualifiedName);
@@ -162,5 +223,6 @@ namespace Anfang
             }
             return type;
         }
+
     }
 }
