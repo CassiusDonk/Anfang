@@ -8,7 +8,7 @@
         Title="MainWindow" Height="965" Width="1971">
     <Grid HorizontalAlignment="Left" Width="1971">
         <Button Content="Calculate" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="Button_Click"/>
-        <Label x:Name="debug_label" Content="Label" HorizontalAlignment="Left" Margin="1158,380,0,0" VerticalAlignment="Top" Foreground="Black"/>
+        <Label x:Name="debug_label" Content="Label" HorizontalAlignment="Left" Margin="10,839,0,0" VerticalAlignment="Top" Foreground="Black"/>
         <DataGrid x:Name="inputgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Inputgrid_AutoGeneratingColumn" HorizontalAlignment="Left" Height="300" Margin="1035,75,0,0" VerticalAlignment="Top" Width="633" CurrentCellChanged="inputgrid_CurrentCellChanged">
             <DataGrid.DataContext>
                 <local:Branch/>
@@ -17,9 +17,9 @@
         <Canvas x:Name="Canvas" Margin="10,75,0,0" Height="400" Width="1000" Background="#FFC5C5C5" MouseLeftButtonDown="Canvas_MouseLeftButtonDown" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <DataGrid x:Name="shockpointgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Shockpointgrid_AutoGeneratingColumn" HorizontalAlignment="Left" Height="45" Margin="1035,25,0,0" VerticalAlignment="Top" Width="633" CurrentCellChanged="inputgrid_CurrentCellChanged"/>
         <Button x:Name="sim_start_btn" Content="Start Sim" HorizontalAlignment="Left" Margin="82,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_start_btn_Click"/>
-        <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="1305,380,0,0" VerticalAlignment="Top" Foreground="Black"/>
+        <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="10,870,0,0" VerticalAlignment="Top" Foreground="Black"/>
         <Button x:Name="sim_stop_btn" Content="Stop Sim" HorizontalAlignment="Left" Margin="153,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_stop_btn_Click"/>
-        <Label x:Name="debug_label_3" Content="Label" HorizontalAlignment="Left" Margin="1453,380,0,0" VerticalAlignment="Top" Foreground="Black"/>
+        <Label x:Name="debug_label_3" Content="Label" HorizontalAlignment="Left" Margin="10,903,0,0" VerticalAlignment="Top" Foreground="Black"/>
         <DataGrid x:Name="outputgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Outputgrid_AutoGeneratingColumn" HorizontalAlignment="Left" Height="300" Margin="10,534,0,0" VerticalAlignment="Top" Width="221" CurrentCellChanged="inputgrid_CurrentCellChanged">
             <DataGrid.DataContext>
                 <local:Branch/>

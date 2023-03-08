@@ -46,10 +46,22 @@ namespace Anfang
         {
             InitializeComponent();
             branches.CollectionChanged += this.Branches_CollectionChanged;
-            datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 2, IsBreaker = true, Enabled = true, Node1 = 1, Node2 = 2, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 3, Node1 = 2, Node2 = 3, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 4, Node1 = 3, Node2 = 0, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            //datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
+            //datagrid_collection.Add(new Branch() { Number = 2, IsBreaker = true, Enabled = true, Node1 = 1, Node2 = 2, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
+            //datagrid_collection.Add(new Branch() { Number = 3, Node1 = 2, Node2 = 3, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 2, Node1 = 0, Node2 = 2, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 3, Node1 = 0, Node2 = 3, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 4, Node1 = 1, Node2 = 4, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 5, Node1 = 1, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 6, Node1 = 4, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 7, Node1 = 2, Node2 = 4, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 8, Node1 = 2, Node2 = 5, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 9, Node1 = 4, Node2 = 5, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 10, Node1 = 3, Node2 = 5, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 11, Node1 = 3, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 12, Node1 = 5, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+
             inputgrid.ItemsSource = datagrid_collection;
             shockpointgrid.ItemsSource = shockpointgrid_collection;
             outputgrid.ItemsSource = outputgrid_collection;

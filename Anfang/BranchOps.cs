@@ -33,7 +33,7 @@ namespace Anfang
         public BranchOps()
         {
         }
-        public List<Branch> CreateCopy (List<Branch> input)
+        public List<Branch> CreateCopy(List<Branch> input)
         {
             List<Branch> branches = new List<Branch>();
 
@@ -164,25 +164,33 @@ namespace Anfang
             }
             return output_common_node_branches;
         }
+
+        public List<int> GetJunctions(List<Branch> input)
+        {
+            List<Branch> branches = CreateCopy(input);
+            List<int> result = new List<int>();
+            List<int> nodes = GetNodes(branches);
+            foreach (var node in nodes)
+            {
+                if (branches.FindAll(x => x.Node1 == node | x.Node2 == node).Count() > 2)
+                {
+                    result.Add(node);
+                }
+            }
+            return result;
+        }
         public List<List<Branch>> GetLoops(List<Branch> input, Branch starting_branch, bool starting_direction)
         {
             output_loops.Clear();
+
             List<Branch> branches = CreateCopy(input);
-
-            int endpoint = new int();
-
-            if (starting_direction == true)
-            {
-                endpoint = starting_branch.Node1;
-            }
-            else
-            {
-                endpoint = starting_branch.Node2;
-            }
+            List<int> junctions = GetJunctions(branches);
 
             bool direction = new bool();
 
-            while (output_loops.Count() < input.Count - this.GetNodes(input).Count + 1)
+            bool[] passed_branches = new bool[branches.Count()];
+
+            while (Array.TrueForAll(passed_branches, x => x == true) == false) // determine whether all branches are included in the loops
             {
                 List<Branch> output_loop = new List<Branch>();
 
@@ -190,14 +198,41 @@ namespace Anfang
 
                 direction = starting_direction;
 
-                output_loop.Add(starting_branch);
-                output_loop[0].Direction = direction;
-                bool one_branch_deleted = false;
-
-                while (true)
+                if (output_loops.Count() == 0) // use first branch as a starting one
                 {
-                    List<Branch> connected = GetConnectedBranches(branches, output_loop[output_loop.Count - 1], direction);
-                    if (direction)
+                    output_loop.Add(starting_branch);
+                    output_loop[0].Direction = direction;
+                }
+                else // use one of the skipped branches as a starting one to make a unique loop
+                {
+                    int lol = Array.FindIndex(passed_branches, x => x == false);
+                    output_loop.Add(branches[Array.FindIndex(passed_branches, x => x == false)]);
+                    output_loop[0].Direction = direction;
+                }
+
+                int endpoint = new int();
+                if (direction) // determine the endpoint
+                {
+                    endpoint = output_loop[0].Node1;
+                }
+                else
+                {
+                    endpoint = output_loop[0].Node2;
+                }
+
+                bool record_path = false;
+                List<List<Branch>> recorded_path = new List<List<Branch>>(); // container for a possible wrong path
+                foreach (var item in junctions)
+                {
+                    recorded_path.Add(new List<Branch>());
+                }
+
+                int junction = -1; // this number is needed so we could fall back to the latest junction instead of the first one 
+
+                while (true) // loop-building procedure
+                {
+                    List<Branch> connected = GetConnectedBranches(branches, output_loop[output_loop.Count() - 1], direction); // looking for connected branches
+                    if (direction) // removing the node ensures that we pass each branch only once
                     {
                         nodes.Remove(output_loop[output_loop.Count - 1].Node2);
                     }
@@ -205,17 +240,29 @@ namespace Anfang
                     {
                         nodes.Remove(output_loop[output_loop.Count - 1].Node1);
                     }
+                    if (connected.Count() > 1) // there are multiple connected branches - we could face an error if we go in the wrong direction
+                    {                          // therefore, we start recording our path
+                        record_path = true;
+                        junction++;
+                    }
                     foreach (var branch in connected)
                     {
                         if (nodes.Contains(branch.Node1))
                         {
                             direction = false;
                             input.Find(x => x.Number == branch.Number).Direction = direction;
-                            output_loop.Add(new Branch() { Number = branch.Number, Node1 = branch.Node1, Node2 = branch.Node2, Ohms = -branch.Ohms, E = branch.E, Reversed = true });
-                            if (connected.Count() > 1 & one_branch_deleted == false)
+                            output_loop.Add(new Branch()
                             {
-                                branches.Remove(branches.Find(x => x.Number == branch.Number));
-                                one_branch_deleted = true;
+                                Number = branch.Number,
+                                Node1 = branch.Node1,
+                                Node2 = branch.Node2,
+                                Ohms = -branch.Ohms,
+                                E = branch.E,
+                                Reversed = true
+                            });
+                            if (record_path == true)
+                            {
+                                recorded_path[junction].Add(new Branch() { Number = branch.Number });
                             }
                             break;
                         }
@@ -223,25 +270,55 @@ namespace Anfang
                         {
                             direction = true;
                             input.Find(x => x.Number == branch.Number).Direction = direction;
-                            output_loop.Add(new Branch() { Number = branch.Number, Node1 = branch.Node1, Node2 = branch.Node2, Ohms = branch.Ohms, E = branch.E });
-                            if (connected.Count() > 1 & one_branch_deleted == false)
+                            output_loop.Add(new Branch()
                             {
-                                branches.Remove(branches.Find(x => x.Number == branch.Number));
-                                one_branch_deleted = true;
+                                Number = branch.Number,
+                                Node1 = branch.Node1,
+                                Node2 = branch.Node2,
+                                Ohms = branch.Ohms,
+                                E = branch.E
+                            });
+                            if (record_path == true)
+                            {
+                                recorded_path[junction].Add(new Branch() { Number = branch.Number });
                             }
                             break;
                         }
-                        else
+                        if (connected.FindIndex(x => x == branch) == connected.Count() - 1) // we checked all connected branches and found no suitable ones
                         {
-                            throw new TopologyException("No loops found - check topology");
+                            if (recorded_path.Count() - 1 < junction) // we have no available branches right at the junction
+                            {                                         // we have to fall back to the previous junction
+                                foreach (var recorded_branch in recorded_path[junction - 1])
+                                {
+                                    output_loop.RemoveAll(x => x.Number == recorded_branch.Number);
+                                }
+                                recorded_path.RemoveAt(junction - 1);
+                                //recorded_path.TrimExcess();
+                                junction--;
+                                junction--;
+                            }
+                            else // we have no available branches somewhere after the junction, so we fall back to it
+                            {
+                                foreach (var recorded_branch in recorded_path[junction])
+                                {
+                                    output_loop.RemoveAll(x => x.Number == recorded_branch.Number);
+                                }
+                                recorded_path.RemoveAt(junction);
+                                //recorded_path.TrimExcess();
+                                junction--;
+                            }
                         }
                     }
-                    if (output_loop.Count() >= 2 & (output_loop[output_loop.Count() - 1].Node1 == endpoint | output_loop[output_loop.Count() - 1].Node2 == endpoint) )
+                    if (output_loop.Count() >= 2 & (output_loop[output_loop.Count() - 1].Node1 == endpoint | output_loop[output_loop.Count() - 1].Node2 == endpoint))
                     {
                         break;
                     }
                 }
                 output_loops.Add(output_loop);
+                foreach (var item in output_loop)
+                {
+                    passed_branches[item.Number - 1] = true;
+                }
             }
             if (output_loops.Count == 0)
             {
