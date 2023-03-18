@@ -49,18 +49,13 @@ namespace Anfang
             //datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
             //datagrid_collection.Add(new Branch() { Number = 2, IsBreaker = true, Enabled = true, Node1 = 1, Node2 = 2, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
             //datagrid_collection.Add(new Branch() { Number = 3, Node1 = 2, Node2 = 3, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 2, Node1 = 0, Node2 = 2, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 3, Node1 = 0, Node2 = 3, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 4, Node1 = 1, Node2 = 4, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 5, Node1 = 1, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 6, Node1 = 4, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 7, Node1 = 2, Node2 = 4, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 8, Node1 = 2, Node2 = 5, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 9, Node1 = 4, Node2 = 5, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 10, Node1 = 3, Node2 = 5, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 11, Node1 = 3, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
-            datagrid_collection.Add(new Branch() { Number = 12, Node1 = 5, Node2 = 6, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 1, Node1 = 0, Node2 = 1, Ohms_Act = 1, Ohms_React = 0, E_Act = 1, E_React = 0 });
+            datagrid_collection.Add(new Branch() { Number = 2, Node1 = 1, Node2 = 2, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0, IsBreaker = true, Enabled = true });
+            datagrid_collection.Add(new Branch() { Number = 3, Node1 = 2, Node2 = 0, Ohms_Act = 1, Ohms_React = 0, E_Act = 0, E_React = 0 });
+
+            shockpointgrid_collection.Add(new Branch() { Node1 = 2, Node2 = 0 });
+
+            protectiongrid_collection.Add(new Protection() { label = "Prot1", init_label = "Comp1", trip_label = "Discrete1" });
 
             inputgrid.ItemsSource = datagrid_collection;
             shockpointgrid.ItemsSource = shockpointgrid_collection;
@@ -380,6 +375,7 @@ namespace Anfang
                 debug_label.Content = TopologyException;
             }
             GraphOps.CanvasDisplayResults(Canvas, branches);
+            BranchOps.CalculateNodeVoltages(branches, 0);
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -428,34 +424,16 @@ namespace Anfang
 
             int sim_step = 100;
 
-            Protection prot = new Protection();
-            List<String> logic_config = new List<String>();
-            logic_config.Add("analog1");
-            logic_config.Add("comp1");
-            logic_config.Add("analog2");
-            logic_config.Add("comp2");
-            logic_config.Add("or1");
-            logic_config.Add("timer1");
-            //logic_config.Add("invert1");
-            logic_config.Add("discrete1");
-            prot.init_label = "or1";
-            prot.trip_label = "discrete1";
-            prot.logic_config = logic_config;
-            prot.sim_time_step = sim_step;
-            prot.timer_delays.Add(1000);
-            prot.tripLevels.Add(new Complex32((float)0.5, 0));
-            prot.tripLevels.Add(new Complex32((float)0.5, 0));
-            prot.Initiate_logic();
-            prot.analogInputs.Add(branches[0].Current);
-            prot.analogInputs.Add(branches[1].Current);
-            prot.analogInputs[0] = branches[0].Current;
-            prot.analogInputs[1] = branches[1].Current;
-
 
             Timer = new System.Timers.Timer(200);
             Timer.Elapsed += OnTimedEvent2;
             Timer.AutoReset = true;
             Timer.Enabled = true;
+
+            foreach (var prot in protections)
+            {
+                prot.Initiate_logic();
+            }
 
             void OnTimedEvent2(Object source, ElapsedEventArgs e)
             {
@@ -470,13 +448,18 @@ namespace Anfang
                 branchOps.CalcTranCurrents_to_branches(branches, sim_step);
                 //if (prot.analogInputs.Count <= 0)
                 //{
-                    //prot.analogInputs.Add(branches[0].Current);
-                    //prot.analogInputs.Add(branches[1].Current);
+                //prot.analogInputs.Add(branches[0].Current);
+                //prot.analogInputs.Add(branches[1].Current);
                 //}
                 //prot.analogInputs[0] = branches[0].Current;
                 //prot.analogInputs[1] = branches[1].Current;
-                prot.sim_time = sim_time;
-                prot.EvaluateLogic();
+                foreach (var prot in protections)
+                {
+                    prot.getAnalogs(branches);
+                    prot.sim_time = sim_time;
+                    prot.sim_time_step = sim_step;
+                    prot.EvaluateLogic();
+                }
 
                 Dispatcher.Invoke(() =>
                 {
@@ -488,14 +471,15 @@ namespace Anfang
                             outputgrid_collection.Add(branch);
                         }
                     }
-                    debug_label.Content = prot.trip;
+                    debug_label.Content = protections[0].trip;
                 });
                 sim_time += sim_step;
-                if (prot.trip == true)
-                { // Test of the live changes in the topology.
-                    if (branches[1].Enabled)
-                    {
-                        branches.UpdateProperty(branches[1], "Enabled", false, true);
+
+                foreach (var prot in protections)
+                {
+                    if (prot.trip == true)
+                    { // Test of the live changes in the topology.
+                        prot.TripBreakers(branches);
                     }
                 }
             }

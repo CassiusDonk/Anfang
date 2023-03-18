@@ -202,7 +202,7 @@ namespace Anfang
         {
             foreach (var breaker_number in breaker_numbers)
             {
-                branches.UpdateProperty(branches[breaker_number - 1], "Enabeld", false, true);
+                branches.UpdateProperty(branches[breaker_number - 1], "Enabled", false, true);
             }
         }
 
