@@ -34,6 +34,10 @@ namespace Anfang
             }
             set
             {
+                if (value == 0)
+                {
+                    value = 0.000000001F;
+                }
                 if (value != this.Ohms_Act_Value)
                 {
                     this.Ohms_Act_Value = value;
@@ -49,6 +53,10 @@ namespace Anfang
             }
             set
             {
+                if (value == 0)
+                {
+                    value = 0.000000001F;
+                }
                 if (value != this.Ohms_React_Value)
                 {
                     this.Ohms_React_Value = value;
@@ -96,6 +104,10 @@ namespace Anfang
         public bool IsBreaker { get; set; }
 
         public Complex32 Current { get; set; }
+
+        public Complex32 Voltage_Node1 { get; set; }
+        public Complex32 Voltage_Node2 { get; set; }
+        public Complex32 Voltage_Drop { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

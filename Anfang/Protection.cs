@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System.Runtime.CompilerServices;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace Anfang
 {
@@ -19,7 +22,23 @@ namespace Anfang
         public int sim_time = 0;
         public int sim_time_step = 0;
         public bool init = false;
-        public bool trip = false;
+        public bool trip_old;
+        public CustomObservable branches;
+        public bool trip
+        {
+            get
+            {
+                return trip_old;
+            }
+            set
+            {
+                if (value != this.trip_old)
+                {
+                    this.trip_old = value;
+                    TripBreakers(branches);
+                }
+            }
+        }
         public string label { get; set; }
         public string init_label { get; set; }
         public string trip_label { get; set; }

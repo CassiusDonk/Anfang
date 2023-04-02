@@ -3,6 +3,8 @@ using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Anfang
 {
@@ -138,11 +140,11 @@ namespace Anfang
             {
                 if ((branch.Direction == true & branch.Node2 == node) | (branch.Direction == false & branch.Node1 == node))
                 {
-                    branch.Ohms = -1;
+                    //branch.Ohms = -branch.Ohms;
                 }
                 else
                 {
-                    branch.Ohms = 1;
+                    branch.Ohms = branch.Ohms;
                 }
             }
             return output_common_node_branches;
@@ -614,7 +616,7 @@ namespace Anfang
             }
 
 
-        }
+        }// currently unused
 
         public void CalculateNodeVoltages(CustomObservable branches, int ground_node)
         {
@@ -627,46 +629,118 @@ namespace Anfang
             nodes.Remove(ground_node);
 
             Complex32[,] conductances = new Complex32[nodes.Count(), nodes.Count()];
-
-            for (int m = 0; m < nodes.Count(); m++)
-            {
-                for (int n = 0; n < nodes.Count(); n++)
-                {
-                    List<Branch> branches_nm = new List<Branch>();
-                    if (n == m)
-                    {
-                        branches_nm = GetCommonNodeBranches(input, nodes[n]);
-                    }
-                    else
-                    {
-                        branches_nm = input.FindAll(x => (x.Node1 == nodes[m] & x.Node2 == nodes[n]) | (x.Node1 == nodes[n] & x.Node2 == nodes[m]));
-                    }
-                    Complex32 conductance = new Complex32(0, 0);
-                    foreach (var branch in branches_nm)
-                    {
-                        conductance += 1 / branch.Ohms;
-                    }
-                    conductances[m, n] = conductance;
-                }
-            }
-
             Complex32[] node_currents = new Complex32[nodes.Count()];
 
-            for (int m = 0; m < nodes.Count(); m++)
+            var get_conductances = Task.Run(() => 
             {
-                List<Branch> branches_m = GetCommonNodeBranches(input, nodes[m]);
-                Complex32 node_current = new Complex32();
-                foreach (var branch in branches_m)
+                for (int m = 0; m < nodes.Count(); m++)
                 {
-                    node_current += branch.E / branch.Ohms;
+                    for (int n = 0; n < nodes.Count(); n++)
+                    {
+                        List<Branch> branches_nm = new List<Branch>();
+                        if (n == m)
+                        {
+                            branches_nm = GetCommonNodeBranches(input, nodes[n]);
+                        }
+                        else
+                        {
+                            branches_nm = input.FindAll(x => (x.Node1 == nodes[m] & x.Node2 == nodes[n]) | (x.Node1 == nodes[n] & x.Node2 == nodes[m]));
+                        }
+                        Complex32 conductance = new Complex32(0, 0);
+                        foreach (var branch in branches_nm)
+                        {
+                            Complex32 ohms_inv;
+                            Complex32 real_inv;
+                            Complex32 imag_inv;
+                            if (branch.Ohms.Real < 0)
+                            {
+                                real_inv = new Complex32(-branch.Ohms.Real, 0);
+                            }
+                            else
+                            {
+                                real_inv = new Complex32(branch.Ohms.Real, 0);
+                            }
+                            if (branch.Ohms.Imaginary < 0)
+                            {
+                                imag_inv = new Complex32(0, -branch.Ohms.Imaginary);
+                            }
+                            else
+                            {
+                                imag_inv = new Complex32(0, branch.Ohms.Imaginary);
+                            }
+                            ohms_inv = real_inv + imag_inv;
+                            if (n == m)
+                            {
+                                conductance += 1 / branch.Ohms;
+                            }
+                            else
+                            {
+                                conductance += -1 / branch.Ohms;
+                            }
+                        }
+                        conductances[m, n] = conductance;
+                    }
                 }
-                node_currents[m] = node_current;
-            }
+            });
 
-            Matrix<Complex32> conductances_matrix = Matrix<Complex32>.Build.DenseOfArray(conductances);
-            Vector<Complex32> node_currents_vector = Vector<Complex32>.Build.DenseOfArray(node_currents);
+            var get_node_currents = Task.Run(() => 
+            {
+                for (int m = 0; m < nodes.Count(); m++)
+                {
+                    List<Branch> branches_m = GetCommonNodeBranches(input, nodes[m]);
+                    Complex32 node_current = new Complex32();
+                    foreach (var branch in branches_m)
+                    {
+                        if (branch.Node1 == nodes[m])
+                        {
+                            node_current += -branch.E / branch.Ohms;
+                        }
+                        else
+                        {
+                            node_current += branch.E / branch.Ohms;
+                        }
+                    }
+                    node_currents[m] = node_current;
+                }
+            });
+
+            Task.WaitAll(get_conductances, get_node_currents);
+
+            Matrix<Complex32> conductances_matrix = Matrix<Complex32>.Build.Random(1, 1);
+            Vector<Complex32> node_currents_vector = Vector<Complex32>.Build.Random(1, 1);
+            var a = Task.Run(() => conductances_matrix = Matrix<Complex32>.Build.DenseOfArray(conductances));
+            var b = Task.Run(() => node_currents_vector = Vector<Complex32>.Build.DenseOfArray(node_currents));
+            Task.WaitAll(a, b);
             Vector<Complex32> voltages = conductances_matrix.Solve(node_currents_vector);
 
+            for (int i = 0; i <= branches.Count() - 1; i++)
+            {
+                if (branches[i].Node1 != 0)
+                {
+                    int node1_index = nodes.FindIndex(x => x == branches[i].Node1);
+                    branches.UpdateProperty(branches[i], "Voltage_Node1", voltages[node1_index], false);
+                }
+                if (branches[i].Node2 != 0)
+                {
+                    int node2_index = nodes.FindIndex(x => x == branches[i].Node2);
+                    branches.UpdateProperty(branches[i], "Voltage_Node2", voltages[node2_index], false);
+                }
+                Complex32 vdrop = branches[i].Voltage_Node1 - branches[i].Voltage_Node2;
+                if (branches[i].E != 0)
+                {
+                    vdrop = branches[i].E - branches[i].Voltage_Node2;
+                }
+                Complex32 current = vdrop / branches[i].Ohms;
+                branches.UpdateProperty(branches[i], "Current", current, false);
+                if (i < branches.Count() - 1)
+                {
+                    branches.UpdateProperty(branches[i], "Voltage_Drop", vdrop, false);
+                }
+                else
+                {
+                    branches.UpdateProperty(branches[i], "Voltage_Drop", vdrop, true);
+                }
+            }
         }
         public Vector<Complex32> CalcShockCurrents(List<Branch> input, int shocknode, Complex32 shockresistance)
         {
