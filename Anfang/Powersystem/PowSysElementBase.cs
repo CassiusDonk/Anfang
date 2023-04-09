@@ -338,5 +338,15 @@ namespace Anfang.Powersystem
             }
             return 0;
         }
+
+        public string GetUid()
+        {
+            string Uid = type + id;
+            if (grounded)
+            {
+                Uid += "g";
+            }
+            return Uid;
+        }
     }
 }

@@ -15,7 +15,7 @@
                 <local:Branch/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Canvas x:Name="Canvas" Margin="10,75,910,0" Height="400" Background="#FFC5C5C5" MouseLeftButtonDown="Canvas_MouseLeftButtonDown" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top"/>
+        <Canvas x:Name="Canvas" Margin="10,75,910,0" Height="400" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" IsMouseDirectlyOverChanged="Canvas_IsMouseDirectlyOverChanged" MouseLeave="Canvas_MouseLeave"/>
         <Button x:Name="sim_start_btn" Content="Start Sim" HorizontalAlignment="Left" Margin="82,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_start_btn_Click"/>
         <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="225,42,0,0" VerticalAlignment="Top" Foreground="Black"/>
         <Button x:Name="sim_stop_btn" Content="Stop Sim" HorizontalAlignment="Left" Margin="153,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_stop_btn_Click"/>

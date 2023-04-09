@@ -66,14 +66,14 @@ namespace Anfang
             analogsgrid.ItemsSource = analogsgrid_collection;
             breakersgrid.ItemsSource = breakersgrid_collection;
             powersysgrid.ItemsSource = powersysgrid_collection;
-            powersysgrid_collection.Add(new PowSysElementBase() 
-            { 
+            powersysgrid_collection.Add(new PowSysElementBase()
+            {
                 id = 1,
                 type = "GEN",
-                elnode1 = 0, 
-                elnode2 = 1, 
-                property3 = 63.51F, 
-                property1 = 75, 
+                elnode1 = 0,
+                elnode2 = 1,
+                property3 = 63.51F,
+                property1 = 75,
                 property2 = 0.146F,
                 grounded = false,
                 ground_act = 0,
@@ -262,7 +262,7 @@ namespace Anfang
                     }
                     foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].analogInputLinks)
                     {
-                        analogsgrid_collection.Add(new AnalogInputLink { isVoltage = item.isVoltage, index = item.index } );
+                        analogsgrid_collection.Add(new AnalogInputLink { isVoltage = item.isVoltage, index = item.index });
                     }
                     foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].breaker_numbers)
                     {
@@ -410,17 +410,49 @@ namespace Anfang
             //GraphOps.CanvasDisplayResults(Canvas, branches);
         }
 
-        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        { // Canvas interaction using GraphOps.CanvasLeftClick.
-            if (inputgrid.SelectedItem == null)
+        private void Canvas_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (powersysgrid.SelectedItem == null)
             {
-                GraphOps.CanvasLeftClick(Canvas, sender, e, "", Brushes.Blue);
+
             }
-            if (inputgrid.SelectedItem != null)
+            //if (inputgrid.SelectedItem != null)
+            //{
+            //string Uid = "Branch" + datagrid_collection[datagrid_collection.IndexOf((Branch)inputgrid.SelectedItem)].Number;
+            //GraphOps.CanvasLeftClick(Canvas, sender, e, Uid, Brushes.Red);
+            //}
+            if (powersysgrid.SelectedItem != null)
             {
-                string Uid = "Branch" + datagrid_collection[datagrid_collection.IndexOf((Branch)inputgrid.SelectedItem)].Number;
-                GraphOps.CanvasLeftClick(Canvas, sender, e, Uid, Brushes.Red);
+                string Uid = powersysgrid_collection[powersysgrid_collection.IndexOf((PowSysElementBase)powersysgrid.SelectedItem)].GetUid();
+                GraphOps.CanvasDrawOrRemoveElement(Canvas, sender, e, Uid, Brushes.Red, false);
             }
+        }
+
+        private void Canvas_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (powersysgrid.SelectedItem != null)
+            {
+                string Uid = powersysgrid_collection[powersysgrid_collection.IndexOf((PowSysElementBase)powersysgrid.SelectedItem)].GetUid();
+                GraphOps.CanvasHoverOver(Canvas, sender, e, Uid, Brushes.Gray);
+            }
+        }
+
+        private void Canvas_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (Canvas.IsMouseDirectlyOver == false)
+            {
+                //GraphOps.CanvasClearPreview(Canvas);
+            }
+        }
+
+        private void Canvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            GraphOps.CanvasClearPreview(Canvas);
+        }
+
+        private void Canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            GraphOps.rotation++;
         }
 
         private void Canvas_Initialized(object sender, EventArgs e)
@@ -430,7 +462,8 @@ namespace Anfang
 
         private void Canvas_Loaded(object sender, RoutedEventArgs e)
         { // Draw the grid when canvas is loaded.
-            GraphOps.DrawLineGrid(Canvas, 50);
+            GraphOps.gridsize = 20;
+            GraphOps.DrawLineGrid(Canvas, GraphOps.gridsize);
         }
 
         private void sim_start_btn_Click(object sender, RoutedEventArgs e)
