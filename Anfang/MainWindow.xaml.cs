@@ -25,19 +25,18 @@ namespace Anfang
 
         public CustomObservable branches = new CustomObservable();
 
-        private static readonly ObservableCollection<Branch> datagrid_collection = new ObservableCollection<Branch>();
+        private static readonly CustomObservable datagrid_collection = new CustomObservable();
         private static readonly ObservableCollection<Protection> protectiongrid_collection = new ObservableCollection<Protection>();
         private static readonly ObservableCollection<LogicString> logicgrid_collection = new ObservableCollection<LogicString>();
         private static readonly ObservableCollection<TripLevels> tripgrid_collection = new ObservableCollection<TripLevels>();
         private static readonly ObservableCollection<TimerDelays> delaygrid_collection = new ObservableCollection<TimerDelays>();
         private static readonly ObservableCollection<AnalogInputLink> analogsgrid_collection = new ObservableCollection<AnalogInputLink>();
         private static readonly ObservableCollection<BreakerLink> breakersgrid_collection = new ObservableCollection<BreakerLink>();
-        private static readonly ObservableCollection<PowSysElementBase> powersysgrid_collection = new ObservableCollection<PowSysElementBase>();
+        public ObservableCollection<PowSysElementBase> powersysgrid_collection = new ObservableCollection<PowSysElementBase>();
 
         System.Timers.Timer Timer;
 
         public ObservableCollection<Protection> protections = new ObservableCollection<Protection>();
-        public ObservableCollection<Powersystem.PowSysElementBase> powersystem = new ObservableCollection<Powersystem.PowSysElementBase>();
 
         public Protection protectiongrid_selecteditem { get; set; }
 
@@ -98,33 +97,24 @@ namespace Anfang
             });
             powersysgrid_collection.Add(new PowSysElementBase()
             {
+                id = 4,
+                type = "BRKR",
+                elnode1 = 2,
+                elnode2 = 3,
+                property1 = 1,
+                property2 = 1,
+                property3 = 1
+            });
+            powersysgrid_collection.Add(new PowSysElementBase()
+            {
                 id = 3,
                 type = "AN",
-                elnode1 = 2,
+                elnode1 = 3,
             });
-        }
-
-        private void powersysgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-
-        }
-
-        private void powersysgrid_CurrentCellChanged(object sender, EventArgs e)
-        {
-            datagrid_collection.Clear();
-            branches.Clear();
-            int number = 1;
             foreach (var element in powersysgrid_collection)
             {
-                element.model.Clear();
-                element.BuildModel();
-                foreach (var branch in element.model)
-                {
-                    branch.Number = number;
-                    datagrid_collection.Add(branch);
-                    branches.Add(branch);
-                    number++;
-                }
+                element.PropertyChanged += Element_PropertyChanged;
+                //element.ResultsChanged += 
             }
         }
 
@@ -134,6 +124,19 @@ namespace Anfang
             foreach (var item in e.AddedItems)
             {
                 ElementsToCopy.Add(item as PowSysElementBase);
+            }
+        }
+
+        private void Element_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            string name = e.PropertyName;
+            PowSysElementBase element = sender as PowSysElementBase;
+            datagrid_collection.FindCommonID(element.id);
+            int i = 0;
+            foreach (var branch in datagrid_collection.FindCommonID(element.id))
+            {
+                datagrid_collection.UpdateProperty(datagrid_collection[i], "Enabled", element.model[i].Enabled, false);
+                i++;
             }
         }
 
@@ -152,41 +155,6 @@ namespace Anfang
                 headername == "Current" |
                 headername == "Voltage_Node1" |
                 headername == "Voltage_Node2")
-            {
-                e.Cancel = false;
-            }
-            else
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private void inputgrid_CurrentCellChanged(object sender, EventArgs e)
-        { // Updates the list of branches from datagrids using InOutOps.GetBranches_after.
-
-        }
-
-        private void Shockpointgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-            string headername = e.Column.Header.ToString();
-            if (headername == "Node1" | headername == "Ohms_Act" | headername == "Ohms_React")
-            {
-                e.Cancel = false;
-            }
-            else
-            {
-                e.Cancel = true;
-            }
-        }
-
-        private void Outputgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-            string headername = e.Column.Header.ToString();
-            if (headername == "Number" |
-                headername == "Current" |
-                headername == "Voltage_Node1" |
-                headername == "Voltage_Node2" |
-                headername == "Voltage_Drop")
             {
                 e.Cancel = false;
             }
@@ -262,11 +230,11 @@ namespace Anfang
                     }
                     foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].analogInputLinks)
                     {
-                        analogsgrid_collection.Add(new AnalogInputLink { isVoltage = item.isVoltage, index = item.index });
+                        analogsgrid_collection.Add(new AnalogInputLink { isVoltage = item.isVoltage, side = item.side, id = item.id, phase = item.phase });
                     }
                     foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].breaker_numbers)
                     {
-                        breakersgrid_collection.Add(new BreakerLink() { branchNumber = item });
+                        breakersgrid_collection.Add(new BreakerLink() { brerakerID = item });
                     }
                 }
                 else
@@ -352,12 +320,12 @@ namespace Anfang
             protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Clear();
             foreach (var item in analogsgrid_collection)
             {
-                if (item.index.GetType().ToString() == "System.Int32")
+                if (item.id.GetType().ToString() == "System.Int32")
                 {
                     protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Add(
-                        new AnalogInputLink() { isVoltage = item.isVoltage, index = item.index });
+                        new AnalogInputLink() { isVoltage = item.isVoltage, id = item.id, phase = item.phase, side = item.side });
                 }
-                debug_label_3.Content = item.index.GetType().ToString();
+                debug_label_3.Content = item.id.GetType().ToString();
             }
         }
 
@@ -371,9 +339,9 @@ namespace Anfang
             protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Clear();
             foreach (var item in breakersgrid_collection)
             {
-                if (item.branchNumber.GetType().ToString() == "System.Int32")
+                if (item.brerakerID.GetType().ToString() == "System.Int32")
                 {
-                    protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Add(item.branchNumber);
+                    protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Add(item.brerakerID);
                 }
             }
         }
@@ -397,8 +365,27 @@ namespace Anfang
             }
         }
 
+        public void BuildGlobalModel()
+        {
+            datagrid_collection.Clear();
+            branches.Clear();
+            int number = 1;
+            foreach (var element in powersysgrid_collection)
+            {
+                element.BuildModel();
+                foreach (var branch in element.model)
+                {
+                    branch.Number = number;
+                    datagrid_collection.Add(branch);
+                    branches.Add(branch);
+                    number++;
+                }
+            }
+        }
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            BuildGlobalModel();
             var BranchOps = new BranchOps();
             BranchOps.CalculateNodeVoltages(branches, 0);
             for (int i = 0; i < branches.Count(); i++)
@@ -406,6 +393,10 @@ namespace Anfang
                 datagrid_collection[i].Current = branches[i].Current;
                 datagrid_collection[i].Voltage_Node1 = branches[i].Voltage_Node1;
                 datagrid_collection[i].Voltage_Node2 = branches[i].Voltage_Node2;
+            }
+            foreach (var element in powersysgrid_collection)
+            {
+                element.UpdateResults();
             }
             //GraphOps.CanvasDisplayResults(Canvas, branches);
         }
@@ -520,8 +511,8 @@ namespace Anfang
                 //prot.analogInputs[1] = branches[1].Current;
                 foreach (var prot in protections)
                 {
-                    prot.branches = branches;
-                    prot.getAnalogs(branches);
+                    prot.powersystem = powersysgrid_collection;
+                    prot.getAnalogs();
                     prot.sim_time = sim_time;
                     prot.sim_time_step = sim_step;
                     prot.EvaluateLogic();

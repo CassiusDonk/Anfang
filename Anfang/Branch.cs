@@ -34,7 +34,7 @@ namespace Anfang
             }
             set
             {
-                if (value == 0)
+                if (value == 0 | (Enabled == true & IsBreaker == true))
                 {
                     value = 0.000000001F;
                 }
@@ -53,7 +53,7 @@ namespace Anfang
             }
             set
             {
-                if (value == 0)
+                if (value == 0 | (Enabled == true & IsBreaker == true))
                 {
                     value = 0.000000001F;
                 }
@@ -99,7 +99,20 @@ namespace Anfang
         public bool Direction { get; set; }
         public bool Reversed { get; set; }
 
-        public bool Enabled { get; set; }
+        public bool Enabled
+        {
+            get
+            {
+                return Enabled_;
+            }
+            set
+            {
+                Enabled_ = value;
+                NotifyTrip();
+            }
+        }
+
+        private bool Enabled_;
 
         public bool IsBreaker { get; set; }
 
@@ -108,6 +121,8 @@ namespace Anfang
         public Complex32 Voltage_Node1 { get; set; }
         public Complex32 Voltage_Node2 { get; set; }
         public Complex32 Voltage_Drop { get; set; }
+
+        public int id;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -122,6 +137,20 @@ namespace Anfang
             if (propertyName == "E_Act" | propertyName == "E_React")
             {
                 E = new Complex32(E_Act, E_React);
+            }
+        }
+
+        private void NotifyTrip()
+        {
+            if (Enabled_ == false)
+            {
+                Ohms_Act = 1000000000;
+                Ohms_React = 1000000000;
+            }
+            if (Enabled_ == true)
+            {
+                Ohms_Act = 0;
+                Ohms_React = 0;
             }
         }
 

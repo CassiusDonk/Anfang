@@ -168,7 +168,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Blue, Brushes.Red, true, Uid);
+                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Red, Brushes.Blue, true, Uid);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -180,7 +180,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawGenerator(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Blue, Brushes.Red, true, Uid);
+                    DrawGenerator(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -407,7 +407,10 @@ namespace Anfang
             if (Uid.Contains("TRAN") | Uid.Contains("TRANM"))
             {
                 label.Text = "Y-D-11 " + Uid;
-                label.Text = label.Text.Remove(label.Text.Count() - 1);
+                if (Uid.Contains("g"))
+                {
+                    label.Text = label.Text.Remove(label.Text.Count() - 1);
+                }
             }
             else
             {
@@ -483,7 +486,10 @@ namespace Anfang
             if (Uid.Contains("GEN"))
             {
                 label.Text = Uid;
-                label.Text = label.Text.Remove(label.Text.Count() - 1);
+                if (Uid.Contains("g"))
+                {
+                    label.Text = label.Text.Remove(label.Text.Count() - 1);
+                }
             }
             else
             {

@@ -738,7 +738,7 @@ namespace Anfang
                 }
                 else
                 {
-                    branches.UpdateProperty(branches[i], "Voltage_Drop", vdrop, true);
+                    branches.UpdateProperty(branches[i], "Voltage_Drop", vdrop, false);
                 }
             }
         }

@@ -8,9 +8,13 @@ namespace Anfang
 {
     public class AnalogInputLink
     {
+        public int id { get; set; }
+
+        public int side { get; set; }
+
         public bool isVoltage { get; set; }
 
-        public int index { get; set; }
+        public string phase { get; set; }
 
         public AnalogInputLink()
         {

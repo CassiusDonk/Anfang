@@ -9,6 +9,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using Anfang.Powersystem;
 
 namespace Anfang
 {
@@ -23,7 +24,7 @@ namespace Anfang
         public int sim_time_step = 0;
         public bool init = false;
         public bool trip_old;
-        public CustomObservable branches;
+        public ObservableCollection<PowSysElementBase> powersystem;
         public bool trip
         {
             get
@@ -35,7 +36,7 @@ namespace Anfang
                 if (value != this.trip_old)
                 {
                     this.trip_old = value;
-                    TripBreakers(branches);
+                    TripBreaker(powersystem);
                 }
             }
         }
@@ -168,60 +169,123 @@ namespace Anfang
             }
         }
 
-        public void getAnalogs(CustomObservable branches)
+        public void getAnalogs()
         {
 
-            if (analogInputs.Count() == 0)
+            if (analogInputs.Count() == 0) // populate analog inputs
             {
                 foreach (var analogInputLink in analogInputLinks)
                 {
-                    if (analogInputLink.isVoltage == false) // Analog value is a current, searching in branches
+                    PowSysElementBase element = FindByID(powersystem, analogInputLink.id);
+                    if (analogInputLink.isVoltage == false) // currents
                     {
-                        analogInputs.Add(FindBranch(analogInputLink.index).Current);
+                        if (analogInputLink.side == 1)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs.Add(element.currents_side1[0]);
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs.Add(element.currents_side1[1]);
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs.Add(element.currents_side1[2]);
+                            }
+                        }
+                        if (analogInputLink.side == 2)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs.Add(element.currents_side2[0]);
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs.Add(element.currents_side2[1]);
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs.Add(element.currents_side2[2]);
+                            }
+                        }
                     }
-                    else // analog value is a voltage, searching in nodes
+                    else // voltages
                     {
 
                     }
                 }
             }
-            else
+            else // update analog inputs
             {
                 int i = 0;
                 foreach (var analogInputLink in analogInputLinks)
                 {
-                    if (analogInputLink.isVoltage == false) // Analog value is a current, searching in branches
+                    PowSysElementBase element = FindByID(powersystem, analogInputLink.id);
+                    if (analogInputLink.isVoltage == false)
                     {
-                        analogInputs[i] = FindBranch(analogInputLink.index).Current;
+                        if (analogInputLink.side == 1)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs[i] = element.currents_side1[0];
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs[i] = element.currents_side1[0];
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs[i] = element.currents_side1[0];
+                            }
+                        }
+                        if (analogInputLink.side == 2)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs[i] = element.currents_side2[0];
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs[i] = element.currents_side2[0];
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs[i] = element.currents_side2[0];
+                            }
+                        }
                     }
-                    else // analog value is a voltage, searching in nodes
+                    else
                     {
 
                     }
                     i++;
                 }
             }
-
-            Branch FindBranch(int Number)
-            {
-                Branch result = new Branch();
-                foreach (var branch in branches)
-                {
-                    if (branch.Number == Number)
-                    {
-                        result = branch;
-                        break;
-                    }
-                }
-                return result;
-            }
         }
 
-        public void TripBreakers(CustomObservable branches)
+        public PowSysElementBase FindByID(ObservableCollection<PowSysElementBase> powersystem, int id)
+        {
+            PowSysElementBase result = new PowSysElementBase();
+            foreach (var item in powersystem)
+            {
+                if (item.id == id)
+                {
+                    result = item;
+                    return result;
+                }
+            }
+            return result;
+        }
+
+        public void TripBreaker(ObservableCollection<PowSysElementBase> powersysgrid_collection)
         {
             foreach (var breaker_number in breaker_numbers)
             {
-                branches.UpdateProperty(branches[breaker_number - 1], "Enabled", false, true);
+                PowSysElementBase breaker = FindByID(powersystem, breaker_number);
+                breaker.property1 = 0;
+                breaker.property2 = 0;
+                breaker.property3 = 0;
             }
         }
 

@@ -111,6 +111,19 @@ namespace Anfang
             }
         }
 
+        public CustomObservable FindCommonID(int id)
+        {
+            CustomObservable result = new CustomObservable();
+            foreach (var branch in this)
+            {
+                if (branch.id == id)
+                {
+                    result.Add(branch.CrateCopy(branch));
+                }
+            }
+            return result;
+        }
+
         public object GetInstance(string strFullyQualifiedName)
         {
             Type type = Type.GetType(strFullyQualifiedName);

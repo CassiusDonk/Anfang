@@ -10,7 +10,7 @@
     <Grid HorizontalAlignment="Left" Width="1920">
         <Button Content="Calculate" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="Button_Click"/>
         <Label x:Name="debug_label" Content="Label" HorizontalAlignment="Left" Margin="225,11,0,0" VerticalAlignment="Top" Foreground="Black"/>
-        <DataGrid x:Name="inputgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Inputgrid_AutoGeneratingColumn" Height="225" Margin="980,757,0,0" VerticalAlignment="Top" CurrentCellChanged="inputgrid_CurrentCellChanged" HorizontalAlignment="Left" Width="825">
+        <DataGrid x:Name="inputgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Inputgrid_AutoGeneratingColumn" Height="225" Margin="980,757,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="825">
             <DataGrid.DataContext>
                 <local:Branch/>
             </DataGrid.DataContext>
@@ -146,7 +146,7 @@
                 </LinearGradientBrush>
             </Label.Background>
         </Label>
-        <DataGrid x:Name="powersysgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="225" Margin="10,757,960,0" VerticalAlignment="Top" AutoGeneratingColumn="powersysgrid_AutoGeneratingColumn" CurrentCellChanged="powersysgrid_CurrentCellChanged" SelectionChanged="powersysgrid_SelectionChanged">
+        <DataGrid x:Name="powersysgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="225" Margin="10,757,960,0" VerticalAlignment="Top" SelectionChanged="powersysgrid_SelectionChanged">
             <DataGrid.DataContext>
                 <Powersystem:PowSysElementBase/>
             </DataGrid.DataContext>

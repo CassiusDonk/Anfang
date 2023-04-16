@@ -4,18 +4,89 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Anfang.Powersystem
 {
-    public class PowSysElementBase
+    public class PowSysElementBase : INotifyPropertyChanged
     {
         public int id { get; set; } // needed to get unique numbers for "hidden" nodes, has to be unique for each item
         public int elnode1 { get; set; }
         public int elnode2 { get; set; }
-        public string type { get; set; } // GEN - generator, TRAN - transformer, LINE - line, LOAD - load, SHORT - short-circuit, BRK - breaker
-        public float property1 { get; set; } // S_gen / S_trf / L_line
-        public float property2 { get; set; } // x'' gen / Uk / x1
-        public float property3 { get; set; } // Egen / Pk
+        public string type { get; set; } // GEN - generator, TRAN - transformer, LINE - line, LOAD - load, AN(etc) - short-circuit, BRKR - breaker
+        public float property1 // S_gen / S_trf / L_line
+        {
+            get
+            {
+                return property1_;
+            }
+            set
+            {
+                if (type == "BRKR" & value != 0 & value != 1)
+                {
+                    property1_ = 0;
+                }
+                if (value != property1_ & type == "BRKR")
+                {
+                    UpdateModelOnTrip();
+                    property1_ = value;
+                }
+                if (type != "BRKR")
+                {
+                    property1_ = value;
+                }
+            }
+        }
+        private float property1_;
+        public float property2  // x'' gen / Uk / x1
+        {
+            get
+            {
+                return property2_;
+            }
+            set
+            {
+                if (type == "BRKR" & value != 0 & value != 1)
+                {
+                    property2_ = 0;
+                }
+                if (value != property2_ & type == "BRKR")
+                {
+                    UpdateModelOnTrip();
+                    property2_ = value;
+                }
+                if (type != "BRKR")
+                {
+                    property2_ = value;
+                }
+            }
+        }
+        private float property2_;
+        public float property3  // Egen / Pk
+        {
+            get
+            {
+                return property3_;
+            }
+            set
+            {
+                if (type == "BRKR" & value != 0 & value != 1)
+                {
+                    property3_ = 0;
+                }
+                if (value != property3_ & type == "BRKR")
+                {
+                    UpdateModelOnTrip();
+                    property3_ = value;
+                }
+                if (type != "BRKR")
+                {
+                    property3_ = value;
+                }
+            }
+        }
+        private float property3_;
         public float property4 { get; set; } //  / Px
         public float property5 { get; set; } //  / ixx
         public float property6 { get; set; }
@@ -34,9 +105,45 @@ namespace Anfang.Powersystem
         public int hidden_node_counter = 0;
         public List<int> elnodes;
         public CustomObservable model = new CustomObservable();
+        public string currents_side1_string { get; set; }
+        public List<Complex32> currents_side1
+        { 
+            get
+            {
+                return currents_side1_;
+            }
+            set
+            {
+                if (value != currents_side1_)
+                {
+                    currents_side1_ = value;
+                    UpdateResults();
+                }
+            }
+        }
+        private List<Complex32> currents_side1_;
+
+        public List<Complex32> currents_side2
+        {
+            get
+            {
+                return currents_side2_;
+            }
+            set
+            {
+                if (value != currents_side2_)
+                {
+                    currents_side2_ = value;
+                    UpdateResults();
+                }
+            }
+        }
+        private List<Complex32> currents_side2_;
 
         public void BuildModel()
         {
+            currents_side1 = new List<Complex32>();
+            model.Clear();
             if (type == "GEN")
             {
                 float ohms_react = voltage_side2 * voltage_side2 / property1 * property2;
@@ -47,7 +154,8 @@ namespace Anfang.Powersystem
                     Node2 = GetNewModelNode(elnode2),
                     E_Act = Complex32.FromPolarCoordinates((float)property3, 0).Real,
                     E_React = Complex32.FromPolarCoordinates((float)property3, 0).Imaginary,
-                    Ohms_React = ohms_react
+                    Ohms_React = ohms_react,
+                    id = id
                 });
                 model.Add(new Branch()
                 {
@@ -55,7 +163,8 @@ namespace Anfang.Powersystem
                     Node1 = model[0].Node1,
                     E_Act = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 240).Real,
                     E_React = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 240).Imaginary,
-                    Ohms_React = ohms_react
+                    Ohms_React = ohms_react,
+                    id = id
                 });
                 model.Add(new Branch()
                 {
@@ -63,7 +172,8 @@ namespace Anfang.Powersystem
                     Node1 = model[0].Node1,
                     E_Act = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 120).Real,
                     E_React = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 120).Imaginary,
-                    Ohms_React = ohms_react
+                    Ohms_React = ohms_react,
+                    id = id
                 });
                 if (grounded)
                 {
@@ -72,14 +182,16 @@ namespace Anfang.Powersystem
                         Node1 = model[0].Node1,
                         Node2 = 0,
                         Ohms_Act = ground_act,
-                        Ohms_React = ground_react
+                        Ohms_React = ground_react,
+                        id = id
                     });
                     model.Add(new Branch()
                     {
                         Node1 = GetNewModelNode(elnode2),
                         Node2 = 0,
                         Ohms_Act = 0,
-                        Ohms_React = 0
+                        Ohms_React = 0,
+                        id = id
                     });
                 }
                 else
@@ -89,14 +201,16 @@ namespace Anfang.Powersystem
                         Node1 = model[0].Node1,
                         Node2 = 0,
                         Ohms_Act = 1000000000,
-                        Ohms_React = 1000000000
+                        Ohms_React = 1000000000,
+                        id = id
                     });
                     model.Add(new Branch()
                     {
                         Node1 = GetNewModelNode(elnode2),
                         Node2 = 0,
                         Ohms_Act = 1000000000,
-                        Ohms_React = 1000000000
+                        Ohms_React = 1000000000,
+                        id = id
                     });
                 }
             }
@@ -112,28 +226,28 @@ namespace Anfang.Powersystem
                 Complex32 ohms_magnet = new Complex32(ohms_magnet_act, ohms_magnet_react);
                 Complex32 ohms_6_9_12 = 3 * ohms * ohms_magnet / ((3 * ohms) + ohms_magnet);
 
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = ohms_act, Ohms_React = ohms_react }); //1 (Y-side)
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react }); //2 (Y-side)
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react }); //3 (Y-side)
-                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react }); //4
-                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react }); //5
-                model.Add(new Branch() { Node1 = model[3].Node2, Node2 = model[4].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary }); //6
-                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = model[4].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react }); //7
-                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react }); //8
-                model.Add(new Branch() { Node1 = model[6].Node2, Node2 = model[7].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary }); //9
-                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[7].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react }); //10
-                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[3].Node2, Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react }); //11
-                model.Add(new Branch() { Node1 = model[9].Node2, Node2 = model[10].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary }); //12
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = ohms_act, Ohms_React = ohms_react, id = id }); //1 (Y-side)
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react, id = id }); //2 (Y-side)
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react, id = id }); //3 (Y-side)
+                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react, id = id }); //4
+                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react, id = id }); //5
+                model.Add(new Branch() { Node1 = model[3].Node2, Node2 = model[4].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary, id = id }); //6
+                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = model[4].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react, id = id }); //7
+                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react, id = id }); //8
+                model.Add(new Branch() { Node1 = model[6].Node2, Node2 = model[7].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary, id = id }); //9
+                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[7].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react, id = id }); //10
+                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[3].Node2, Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react, id = id }); //11
+                model.Add(new Branch() { Node1 = model[9].Node2, Node2 = model[10].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary, id = id }); //12
                 if (grounded)
                 {
-                    model.Add(new Branch() { Node1 = model[0].Node2, Node2 = 0, Ohms_Act = ground_act, Ohms_React = ground_react }); //ground
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 0, Ohms_React = 0 }); //neutral wire - Y-side
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000 }); //neutral wire - D-side
+                    model.Add(new Branch() { Node1 = model[0].Node2, Node2 = 0, Ohms_Act = ground_act, Ohms_React = ground_react, id = id }); //ground
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 0, Ohms_React = 0, id = id }); //neutral wire - Y-side
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000, id = id }); //neutral wire - D-side
                 }
                 else
                 {
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000 }); //neutral wire - Y-side
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000 }); //neutral wire - D-side
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000, id = id }); //neutral wire - Y-side
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000, id = id }); //neutral wire - D-side
                 }
             }
             if (type == "TRANM")
@@ -148,28 +262,28 @@ namespace Anfang.Powersystem
                 Complex32 ohms_magnet = new Complex32(ohms_magnet_act, ohms_magnet_react);
                 Complex32 ohms_6_9_12 = 3 * ohms;
 
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = ohms_act, Ohms_React = ohms_react }); //1 (Y-side)
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react }); //2 (Y-side)
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react }); //3 (Y-side)
-                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react }); //4
-                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react }); //5
-                model.Add(new Branch() { Node1 = model[3].Node2, Node2 = model[4].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary }); //6
-                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = model[4].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react }); //7
-                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react }); //8
-                model.Add(new Branch() { Node1 = model[6].Node2, Node2 = model[7].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary }); //9
-                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[7].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react }); //10
-                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[3].Node2, Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react }); //11
-                model.Add(new Branch() { Node1 = model[9].Node2, Node2 = model[10].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary }); //12
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = ohms_act, Ohms_React = ohms_react, id = id }); //1 (Y-side)
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react, id = id }); //2 (Y-side)
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = model[0].Node2, Ohms_Act = ohms_act, Ohms_React = ohms_react, id = id }); //3 (Y-side)
+                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react, id = id }); //4
+                model.Add(new Branch() { Node1 = model[1].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react, id = id }); //5
+                model.Add(new Branch() { Node1 = model[3].Node2, Node2 = model[4].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary, id = id }); //6
+                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = model[4].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react, id = id }); //7
+                model.Add(new Branch() { Node1 = model[2].Node1, Node2 = GetNewModelNode(elnode2), Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react, id = id }); //8
+                model.Add(new Branch() { Node1 = model[6].Node2, Node2 = model[7].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary, id = id }); //9
+                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[7].Node2, Ohms_Act = -sqrt3 * ohms_act, Ohms_React = -sqrt3 * ohms_react, id = id }); //10
+                model.Add(new Branch() { Node1 = model[0].Node1, Node2 = model[3].Node2, Ohms_Act = sqrt3 * ohms_act, Ohms_React = sqrt3 * ohms_react, id = id }); //11
+                model.Add(new Branch() { Node1 = model[9].Node2, Node2 = model[10].Node2, Ohms_Act = ohms_6_9_12.Real, Ohms_React = ohms_6_9_12.Imaginary, id = id }); //12
                 if (grounded)
                 {
-                    model.Add(new Branch() { Node1 = model[0].Node2, Node2 = 0, Ohms_Act = ground_act, Ohms_React = ground_react }); //ground
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 0, Ohms_React = 0 }); //neutral wire - Y-side
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000 }); //neutral wire - D-side
+                    model.Add(new Branch() { Node1 = model[0].Node2, Node2 = 0, Ohms_Act = ground_act, Ohms_React = ground_react, id = id }); //ground
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 0, Ohms_React = 0, id = id }); //neutral wire - Y-side
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000, id = id }); //neutral wire - D-side
                 }
                 else
                 {
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000 }); //neutral wire - Y-side
-                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000 }); //neutral wire - D-side
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000, id = id }); //neutral wire - Y-side
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode2), Node2 = 0, Ohms_Act = 1000000000, Ohms_React = 1000000000, id = id }); //neutral wire - D-side
                 }
             }
             if (type == "ABCN")
@@ -179,9 +293,9 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
-                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property3, Ohms_React = property4 });
-                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property5, Ohms_React = property6 });
+                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
+                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property3, Ohms_React = property4, id = id });
+                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property5, Ohms_React = property6, id = id });
             }
             if (type == "ABN")
             {
@@ -190,8 +304,8 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
-                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property3, Ohms_React = property4 });
+                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
+                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property3, Ohms_React = property4, id = id });
             }
             if (type == "BCN")
             {
@@ -200,8 +314,8 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
-                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property3, Ohms_React = property4 });
+                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
+                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property3, Ohms_React = property4, id = id });
             }
             if (type == "ACN")
             {
@@ -210,8 +324,8 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
-                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property3, Ohms_React = property4 });
+                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
+                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property3, Ohms_React = property4, id = id });
             }
             if (type == "AB")
             {
@@ -220,7 +334,7 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = a, Node2 = b, Ohms_Act = property1, Ohms_React = property2 });
+                model.Add(new Branch() { Node1 = a, Node2 = b, Ohms_Act = property1, Ohms_React = property2, id = id });
             }
             if (type == "BC")
             {
@@ -229,7 +343,7 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = b, Node2 = c, Ohms_Act = property1, Ohms_React = property2 });
+                model.Add(new Branch() { Node1 = b, Node2 = c, Ohms_Act = property1, Ohms_React = property2, id = id });
             }
             if (type == "CA")
             {
@@ -238,7 +352,7 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = a, Node2 = c, Ohms_Act = property1, Ohms_React = property2 });
+                model.Add(new Branch() { Node1 = a, Node2 = c, Ohms_Act = property1, Ohms_React = property2, id = id });
             }
             if (type == "AN")
             {
@@ -247,7 +361,7 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
+                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
             }
             if (type == "BN")
             {
@@ -256,7 +370,7 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
+                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
             }
             if (type == "CN")
             {
@@ -265,18 +379,71 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
-                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property1, Ohms_React = property2 });
+                model.Add(new Branch() { Node1 = c, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
             }
             if (type == "CMEAS")
             {
                 ResetCounters();
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = 1, Ohms_React = 1 });
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = 1, Ohms_React = 1 });
-                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = 1, Ohms_React = 1 });
-                model.Add(new Branch() { Node1 = model[0].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = -1, Ohms_React = -1 });
-                model.Add(new Branch() { Node1 = model[1].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = -1, Ohms_React = -1 });
-                model.Add(new Branch() { Node1 = model[2].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = -1, Ohms_React = -1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = 1, Ohms_React = 1, id = id });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = 1, Ohms_React = 1, id = id });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = 1, Ohms_React = 1, id = id });
+                model.Add(new Branch() { Node1 = model[0].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = -1, Ohms_React = -1, id = id });
+                model.Add(new Branch() { Node1 = model[1].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = -1, Ohms_React = -1, id = id });
+                model.Add(new Branch() { Node1 = model[2].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = -1, Ohms_React = -1, id = id });
             }
+            if (type == "BRKR")
+            {
+                ResetCounters();
+                if (property1 == 0)
+                {
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), IsBreaker = true, Enabled = false, id = id });
+                }
+                if (property1 == 1)
+                {
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), IsBreaker = true, Enabled = true, id = id });
+                }
+                if (property2 == 0)
+                {
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), IsBreaker = true, Enabled = false, id = id });
+                }
+                if (property2 == 1)
+                {
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), IsBreaker = true, Enabled = true, id = id });
+                }
+                if (property3 == 0)
+                {
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), IsBreaker = true, Enabled = false, id = id });
+                }
+                if (property3 == 1)
+                {
+                    model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), IsBreaker = true, Enabled = true, id = id });
+                }
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewModelNode(elnode2), Ohms_Act = 0, Ohms_React = 0, id = id });
+            }
+        }
+
+        public void UpdateResults()
+        {
+            if (model.Count() > 0)
+            {
+                if (model[0].Current != 0)
+                {
+                    currents_side1.Add(model[0].Current);
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public event PropertyChangedEventHandler ResultsChanged;
+
+        private void UpdateModelOnTrip([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        private void UpdateResults([CallerMemberName] String propertyName = "")
+        {
+            ResultsChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void ResetCounters()
