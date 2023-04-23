@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Anfang.Powersystem;
 using MathNet.Numerics;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
-using System.Runtime.CompilerServices;
-using System.ComponentModel;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Anfang.Powersystem;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Anfang
 {
@@ -36,7 +32,7 @@ namespace Anfang
                 if (value != this.trip_old)
                 {
                     this.trip_old = value;
-                    TripBreaker(powersystem);
+                    TripBreaker();
                 }
             }
         }
@@ -169,6 +165,29 @@ namespace Anfang
             }
         }
 
+        public void TryEvaluateLogic()
+        {
+            try
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    analogInputs.Add(new Complex32(0, 0));
+                }
+                EvaluateLogic();
+            }
+            catch (Exception ex)
+            {
+                if (ex is System.ArgumentOutOfRangeException || ex is System.NullReferenceException)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+
+                }
+            }
+        }
+
         public void getAnalogs()
         {
 
@@ -232,11 +251,11 @@ namespace Anfang
                             }
                             if (analogInputLink.phase == "B")
                             {
-                                analogInputs[i] = element.currents_side1[0];
+                                analogInputs[i] = element.currents_side1[1];
                             }
                             if (analogInputLink.phase == "C")
                             {
-                                analogInputs[i] = element.currents_side1[0];
+                                analogInputs[i] = element.currents_side1[2];
                             }
                         }
                         if (analogInputLink.side == 2)
@@ -247,11 +266,11 @@ namespace Anfang
                             }
                             if (analogInputLink.phase == "B")
                             {
-                                analogInputs[i] = element.currents_side2[0];
+                                analogInputs[i] = element.currents_side2[1];
                             }
                             if (analogInputLink.phase == "C")
                             {
-                                analogInputs[i] = element.currents_side2[0];
+                                analogInputs[i] = element.currents_side2[2];
                             }
                         }
                     }
@@ -278,8 +297,10 @@ namespace Anfang
             return result;
         }
 
-        public void TripBreaker(ObservableCollection<PowSysElementBase> powersysgrid_collection)
+        public event PropertyChangedEventHandler Trip;
+        public void TripBreaker([CallerMemberName] String propertyName = "")
         {
+            Trip?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             foreach (var breaker_number in breaker_numbers)
             {
                 PowSysElementBase breaker = FindByID(powersystem, breaker_number);
@@ -287,6 +308,11 @@ namespace Anfang
                 breaker.property2 = 0;
                 breaker.property3 = 0;
             }
+        }
+
+        public void ResetLogic()
+        {
+            logic_devices.Clear();
         }
 
         public Type GetType(string strFullyQualifiedName)

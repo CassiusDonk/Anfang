@@ -29,8 +29,8 @@ namespace Anfang.Powersystem
                 }
                 if (value != property1_ & type == "BRKR")
                 {
-                    UpdateModelOnTrip();
                     property1_ = value;
+                    UpdateModelOnTrip();
                 }
                 if (type != "BRKR")
                 {
@@ -53,8 +53,8 @@ namespace Anfang.Powersystem
                 }
                 if (value != property2_ & type == "BRKR")
                 {
-                    UpdateModelOnTrip();
                     property2_ = value;
+                    UpdateModelOnTrip();
                 }
                 if (type != "BRKR")
                 {
@@ -77,8 +77,8 @@ namespace Anfang.Powersystem
                 }
                 if (value != property3_ & type == "BRKR")
                 {
-                    UpdateModelOnTrip();
                     property3_ = value;
+                    UpdateModelOnTrip();
                 }
                 if (type != "BRKR")
                 {
@@ -216,6 +216,8 @@ namespace Anfang.Powersystem
             }
             if (type == "TRAN")
             {
+                currents_side1 = new List<Complex32>();
+                currents_side2 = new List<Complex32>();
                 ResetCounters();
                 float ohms_react = property2 / 100 * voltage_side2 * voltage_side2 / property1 / 2;
                 float ohms_act = property3 / property1 / property1 * voltage_side2 / 2;
@@ -252,6 +254,8 @@ namespace Anfang.Powersystem
             }
             if (type == "TRANM")
             {
+                currents_side1 = new List<Complex32>();
+                currents_side2 = new List<Complex32>();
                 ResetCounters();
                 float ohms_react = property2 / 100 * voltage_side2 * voltage_side2 / property1 / 2;
                 float ohms_act = property3 / property1 / property1 * voltage_side2 / 2;
@@ -426,9 +430,33 @@ namespace Anfang.Powersystem
         {
             if (model.Count() > 0)
             {
-                if (model[0].Current != 0)
+                if (type == "GEN")
                 {
                     currents_side1.Add(model[0].Current);
+                    currents_side1.Add(model[1].Current);
+                    currents_side1.Add(model[2].Current);
+                }
+                if (type == "TRAN")
+                {
+                    // side 1 - Y-side
+                    currents_side1.Add(model[0].Current + model[10].Current + model[9].Current);
+                    currents_side1.Add(model[1].Current + model[4].Current + model[3].Current);
+                    currents_side1.Add(model[2].Current + model[6].Current + model[7].Current);
+                    // side 2 - D-side
+                    currents_side2.Add(model[3].Current + model[10].Current - model[5].Current + model[11].Current);
+                    currents_side2.Add(model[4].Current + model[6].Current + model[5].Current - model[8].Current);
+                    currents_side2.Add(model[7].Current + model[9].Current + model[8].Current - model[11].Current);
+                }
+                if (type == "TRANM")
+                {
+                    // side 1 - Y-side
+                    currents_side1.Add(model[0].Current);
+                    currents_side1.Add(model[1].Current);
+                    currents_side1.Add(model[2].Current);
+                    // side 2 - D-side
+                    currents_side2.Add(model[3].Current + model[10].Current + model[5].Current + model[11].Current);
+                    currents_side2.Add(model[4].Current + model[6].Current + model[5].Current + model[8].Current);
+                    currents_side2.Add(model[7].Current + model[9].Current);
                 }
             }
         }
@@ -515,5 +543,6 @@ namespace Anfang.Powersystem
             }
             return Uid;
         }
+
     }
 }

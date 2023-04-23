@@ -40,13 +40,13 @@ namespace Anfang.LogicDevices
             }
             if (init == true)
             {
+                internal_time += sim_time_step;
                 if (internal_time >= delay)
                 {
                     output = input_bool;
                     internal_time = 0;
                     init = false;
                 }
-                internal_time += sim_time_step;
             }
         }
     }

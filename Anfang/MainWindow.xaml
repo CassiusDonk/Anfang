@@ -15,22 +15,22 @@
                 <local:Branch/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Canvas x:Name="Canvas" Margin="10,75,910,0" Height="400" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" IsMouseDirectlyOverChanged="Canvas_IsMouseDirectlyOverChanged" MouseLeave="Canvas_MouseLeave"/>
+        <Canvas x:Name="Canvas" Margin="10,75,910,0" Height="400" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" MouseLeave="Canvas_MouseLeave"/>
         <Button x:Name="sim_start_btn" Content="Start Sim" HorizontalAlignment="Left" Margin="82,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_start_btn_Click"/>
         <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="225,42,0,0" VerticalAlignment="Top" Foreground="Black"/>
         <Button x:Name="sim_stop_btn" Content="Stop Sim" HorizontalAlignment="Left" Margin="153,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_stop_btn_Click"/>
         <Label x:Name="debug_label_3" Content="Label" HorizontalAlignment="Left" Margin="225,75,0,0" VerticalAlignment="Top" Foreground="Black"/>
-        <DataGrid x:Name="protectiongrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="18,534,0,0" VerticalAlignment="Top" Width="222" AutoGeneratingColumn="protectiongrid_AutoGeneratingColumn_1" CurrentCellChanged="protectiongrid_CurrentCellChanged_1" SelectionChanged="protectiongrid_SelectionChanged">
+        <DataGrid x:Name="protectiongrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="18,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="protectiongrid_AutoGeneratingColumn_1" CurrentCellChanged="protectiongrid_CurrentCellChanged_1" SelectionChanged="protectiongrid_SelectionChanged">
             <DataGrid.DataContext>
                 <local:Protection/>
             </DataGrid.DataContext>
         </DataGrid>
-        <DataGrid x:Name="logicgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="268,534,0,0" VerticalAlignment="Top" Width="222" CurrentCellChanged="logicgrid_CurrentCellChanged" AutoGeneratingColumn="logicgrid_AutoGeneratingColumn" SelectionChanged="logicgrid_SelectionChanged">
+        <DataGrid x:Name="logicgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="173,534,0,0" VerticalAlignment="Top" Width="150" CurrentCellChanged="logicgrid_CurrentCellChanged" AutoGeneratingColumn="logicgrid_AutoGeneratingColumn" SelectionChanged="logicgrid_SelectionChanged">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Protections" HorizontalAlignment="Left" Margin="18,508,0,0" VerticalAlignment="Top" Width="222" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
+        <Label Content="Protections" HorizontalAlignment="Left" Margin="18,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
             <Label.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -46,7 +46,7 @@
                 </LinearGradientBrush>
             </Label.Background>
         </Label>
-        <Label Content="Logic" HorizontalAlignment="Left" Margin="268,508,0,0" VerticalAlignment="Top" Width="222" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
+        <Label Content="Logic" HorizontalAlignment="Left" Margin="173,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
             <Label.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -62,12 +62,12 @@
                 </LinearGradientBrush>
             </Label.Background>
         </Label>
-        <DataGrid x:Name="tripgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="522,534,0,0" VerticalAlignment="Top" Width="222" AutoGeneratingColumn="tripgrid_AutoGeneratingColumn" CurrentCellChanged="tripgrid_CurrentCellChanged">
+        <DataGrid x:Name="tripgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="328,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="tripgrid_AutoGeneratingColumn" CurrentCellChanged="tripgrid_CurrentCellChanged">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Trip Levels" HorizontalAlignment="Left" Margin="522,508,0,0" VerticalAlignment="Top" Width="222" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
+        <Label Content="Trip Levels" HorizontalAlignment="Left" Margin="328,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
             <Label.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -83,12 +83,12 @@
                 </LinearGradientBrush>
             </Label.Background>
         </Label>
-        <DataGrid x:Name="delaygrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="776,534,0,0" VerticalAlignment="Top" Width="222" AutoGeneratingColumn="delaygrid_AutoGeneratingColumn" CurrentCellChanged="delaygrid_CurrentCellChanged">
+        <DataGrid x:Name="delaygrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="483,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="delaygrid_AutoGeneratingColumn" CurrentCellChanged="delaygrid_CurrentCellChanged">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Timer Delays" HorizontalAlignment="Left" Margin="776,508,0,0" VerticalAlignment="Top" Width="222" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
+        <Label Content="Timer Delays" HorizontalAlignment="Left" Margin="483,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
             <Label.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -104,12 +104,12 @@
                 </LinearGradientBrush>
             </Label.Background>
         </Label>
-        <DataGrid x:Name="analogsgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="1031,534,0,0" VerticalAlignment="Top" Width="222" AutoGeneratingColumn="analogsgrid_AutoGeneratingColumn" CurrentCellChanged="analogsgrid_CurrentCellChanged">
+        <DataGrid x:Name="analogsgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="638,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="analogsgrid_AutoGeneratingColumn" CurrentCellChanged="analogsgrid_CurrentCellChanged">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Analog Signals" HorizontalAlignment="Left" Margin="1031,508,0,0" VerticalAlignment="Top" Width="222" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
+        <Label Content="Analog Signals" HorizontalAlignment="Left" Margin="638,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
             <Label.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -125,12 +125,12 @@
                 </LinearGradientBrush>
             </Label.Background>
         </Label>
-        <DataGrid x:Name="breakersgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="1287,534,0,0" VerticalAlignment="Top" Width="222" AutoGeneratingColumn="breakersgrid_AutoGeneratingColumn" CurrentCellChanged="breakersgrid_CurrentCellChanged">
+        <DataGrid x:Name="breakersgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="793,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="breakersgrid_AutoGeneratingColumn" CurrentCellChanged="breakersgrid_CurrentCellChanged">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Breakers" HorizontalAlignment="Left" Margin="1287,508,0,0" VerticalAlignment="Top" Width="222" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
+        <Label Content="Breakers" HorizontalAlignment="Left" Margin="793,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
             <Label.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <LinearGradientBrush.RelativeTransform>
@@ -152,5 +152,13 @@
             </DataGrid.DataContext>
         </DataGrid>
         <Button x:Name="pastebtn" Content="Duplicate Elements" HorizontalAlignment="Left" Margin="10,987,0,0" VerticalAlignment="Top" Click="pastebtn_Click" Width="164"/>
+        <DataGrid x:Name="resultconfig" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="226" Margin="1038,75,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="354" AutoGeneratedColumns="resultconfig_AutoGeneratedColumns">
+            <DataGrid.DataContext>
+                <local:ResultsDisplay/>
+            </DataGrid.DataContext>
+        </DataGrid>
+        <TextBox x:Name="resultsbox" HorizontalAlignment="Left" Margin="1397,75,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="428" Height="226" AcceptsReturn="True" />
+        <TextBox x:Name="logger" HorizontalAlignment="Left" Margin="1397,339,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="428" Height="88" AcceptsReturn="True" />
+        <Button x:Name="asyncSimBtn" Content="Button" HorizontalAlignment="Left" Margin="303,15,0,0" VerticalAlignment="Top" Click="asyncSimBtn_Click"/>
     </Grid>
 </Window>

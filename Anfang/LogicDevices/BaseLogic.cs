@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MathNet.Numerics;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
-using System.ComponentModel;
+﻿using MathNet.Numerics;
+using System;
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Drawing;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Anfang.LogicDevices
