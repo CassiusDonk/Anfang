@@ -36,7 +36,7 @@ namespace Anfang
             {
                 if (value == 0 | (Enabled == true & IsBreaker == true))
                 {
-                    value = 0.000000001F;
+                    value = 0.001F;
                 }
                 if (value != this.Ohms_Act_Value)
                 {
@@ -55,7 +55,7 @@ namespace Anfang
             {
                 if (value == 0 | (Enabled == true & IsBreaker == true))
                 {
-                    value = 0.000000001F;
+                    value = 0.001F;
                 }
                 if (value != this.Ohms_React_Value)
                 {

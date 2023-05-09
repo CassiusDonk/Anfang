@@ -16,6 +16,7 @@ namespace Anfang
         public bool voltage { get; set; }
         public int side { get; set; }
         public bool magnitude { get; set; }
+        public bool invert { get; set; }
         public string results { get; set; }
         public ResultsDisplay()
         {
@@ -46,11 +47,22 @@ namespace Anfang
             {
 
             }
+            if (invert)
+            {
+                A = -A;
+                B = -B;
+                C = -B;
+            }
             if (magnitude)
             {
-                A = A.Magnitude;
-                B = B.Magnitude;
-                C = C.Magnitude;
+                A = new Complex32(A.Magnitude, RadsToDegs(A.Phase));
+                B = new Complex32(B.Magnitude, RadsToDegs(B.Phase));
+                C = new Complex32(C.Magnitude, RadsToDegs(C.Phase));
+                float RadsToDegs(float rads)
+                {
+                    float degs = rads * 180 / MathF.PI;
+                    return degs;
+                }
             }
 
             if (voltage)
@@ -60,7 +72,7 @@ namespace Anfang
             else
             {
                 string newLine = Environment.NewLine;
-                results = $"ID = {id}, side = {side}, amps: A={A}; B={B}; C={C} {newLine}";
+                results = $"{element.type}{id}, side = {side}, amps: A={A}; B={B}; C={C} {newLine}";
             }
         }
 

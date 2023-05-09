@@ -15,6 +15,10 @@ using System.Windows.Shapes;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using System.Collections.ObjectModel;
+using System.Windows.Threading;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Anfang
 {
@@ -31,12 +35,13 @@ namespace Anfang
         public int gridsize;
         private int rotation_value = 0;
         int uid_counter = 0;
-        public int rotation 
+        public string removed_uid = "";
+        public int rotation
         {
             get
             {
                 return rotation_value;
-            } 
+            }
             set
             {
                 if (value == 4)
@@ -50,11 +55,9 @@ namespace Anfang
             }
         }
 
-
         public GraphOps()
         {
             rotation = 0;
-
         }
 
         public int[] GetGridPosition(Grid grid)
@@ -100,7 +103,7 @@ namespace Anfang
         }
         public void DrawLineCanvas(Canvas canvas, int x1, int y1, int x2, int y2, int thickness, Brush color, bool is_enabled, string Uid)
         {
-            Line line = new Line() { Uid = Uid};
+            Line line = new Line() { Uid = Uid };
             //Thickness thickness = new Thickness(101, -11, 362, 250);
             //line.Margin = thickness;
             line.IsEnabled = is_enabled;
@@ -158,7 +161,7 @@ namespace Anfang
                 grid_drawn = true;
             }
         }
-        public void CanvasDrawOrRemoveElement(Canvas Canvas, object sender, MouseButtonEventArgs e, string Uid, Brush color, bool freedraw)
+        public void CanvasDrawOrRemoveElement(Canvas Canvas, object sender, MouseButtonEventArgs e, string Uid, string LongUID, Brush color, bool freedraw)
         { // All-in-one method for canvas interaction.
             UIElement clicked_object = e.OriginalSource as UIElement;
 
@@ -168,7 +171,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Red, Brushes.Blue, true, Uid);
+                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Red, Brushes.Blue, true, Uid, LongUID);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -180,7 +183,31 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawGenerator(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid);
+                    DrawGenerator(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid);
+                }
+                line_points.Clear();
+                line_points.TrimExcess();
+            }
+
+            if (clicked_object == Canvas & (Uid.Contains("BRKR")))
+            {
+                line_points.Add(e.GetPosition(Canvas));
+                if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
+                {
+                    int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
+                    DrawBreaker(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid, LongUID);
+                }
+                line_points.Clear();
+                line_points.TrimExcess();
+            }
+
+            if (clicked_object == Canvas & (Uid.Contains("LINE")))
+            {
+                line_points.Add(e.GetPosition(Canvas));
+                if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
+                {
+                    int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
+                    DrawTransLine(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid, LongUID);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -195,12 +222,13 @@ namespace Anfang
                     {
                         drawn_items.Remove(item.Uid);
                         Canvas.Children.Remove(item);
+                        removed_uid = item.Uid;
                     }
                 }
             }
         }
 
-        public void CanvasHoverOver(Canvas Canvas, object sender, MouseEventArgs e, string Uid, Brush color)
+        public void CanvasHoverOver(Canvas Canvas, object sender, MouseEventArgs e, string Uid, Brush color, string LongUid)
         {
             if (FindSameUid(Uid, Canvas).Count() == 0)
             {
@@ -213,11 +241,19 @@ namespace Anfang
                 int[] point1 = SnapToGrid((int)position.X, (int)position.Y, gridsize);
                 if (Uid.Contains("TRAN") | Uid.Contains("TRANM"))
                 {
-                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Gray, Brushes.Gray, true, "preview" + Uid[Uid.Count() - 1]);
+                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Gray, Brushes.Gray, true, "preview" + Uid[Uid.Count() - 1], LongUid);
                 }
                 if (Uid.Contains("GEN"))
                 {
-                    DrawGenerator(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Gray, Brushes.Gray, true, "preview" + Uid[Uid.Count() - 1]);
+                    DrawGenerator(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Gray, Brushes.Gray, true, "preview" + Uid[Uid.Count() - 1]);
+                }
+                if (Uid.Contains("BRKR"))
+                {
+                    DrawBreaker(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Gray, Brushes.Gray, true, "preview" + Uid[Uid.Count() - 1], LongUid);
+                }
+                if (Uid.Contains("LINE"))
+                {
+                    DrawTransLine(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Gray, Brushes.Gray, true, "preview" + Uid[Uid.Count() - 1], LongUid);
                 }
                 Canvas.ReleaseMouseCapture();
             }
@@ -241,7 +277,7 @@ namespace Anfang
             Canvas.ReleaseMouseCapture();
         }
 
-        public int[] SnapToGrid (int x, int y, int gridsize)
+        public int[] SnapToGrid(int x, int y, int gridsize)
         { // Self - explanatory.
             int[] snapped_to_grid = new int[2];
             foreach (var col_x in cols_x)
@@ -331,7 +367,7 @@ namespace Anfang
             }
         }
 
-        public void DrawTransformer(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid)
+        public void DrawTransformer(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid, string LongUid)
         {
             Ellipse ellipse = new Ellipse() { Uid = Uid };
             ellipse.IsEnabled = is_enabled;
@@ -358,7 +394,7 @@ namespace Anfang
 
             Thickness position2 = new Thickness(x1 + gridsize, y1, 0, 0);
             Thickness position3 = new Thickness(x1 + 2 * gridsize, y1 + gridsize * 2, 0, 0);
-            if (Uid.Contains("g"))
+            if (LongUid.Contains("g"))
             {
                 if (rotation == 0)
                 {
@@ -380,14 +416,14 @@ namespace Anfang
             if (rotation == 0)
             {
                 DrawLineCanvas(canvas, x1, y1 + gridsize, x1 - gridsize, y1 + gridsize, thickness, color1, is_enabled, Uid);
-                DrawLineCanvas(canvas, x1 + gridsize*3, y1 + gridsize, x1 + gridsize*4, y1 + gridsize, thickness, color2, is_enabled, Uid);
+                DrawLineCanvas(canvas, x1 + gridsize * 3, y1 + gridsize, x1 + gridsize * 4, y1 + gridsize, thickness, color2, is_enabled, Uid);
             }
             if (rotation == 1)
             {
                 position2 = new Thickness(x1, y1 + gridsize, 0, 0);
                 position3 = new Thickness(x1 + 2 * gridsize, y1 + gridsize * 3, 0, 0);
                 DrawLineCanvas(canvas, x1 + gridsize, y1, x1 + gridsize, y1 - gridsize, thickness, color1, is_enabled, Uid);
-                DrawLineCanvas(canvas, x1 + gridsize, y1 + gridsize * 3, x1 + gridsize, y1 + gridsize*4, thickness, color2, is_enabled, Uid);
+                DrawLineCanvas(canvas, x1 + gridsize, y1 + gridsize * 3, x1 + gridsize, y1 + gridsize * 4, thickness, color2, is_enabled, Uid);
             }
             if (rotation == 2)
             {
@@ -430,78 +466,113 @@ namespace Anfang
 
         public void DrawGenerator(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid)
         {
-            Ellipse ellipse = new Ellipse() { Uid = Uid };
-            ellipse.IsEnabled = is_enabled;
-            ellipse.Visibility = System.Windows.Visibility.Visible;
-            ellipse.StrokeThickness = thickness;
-            ellipse.Stroke = color1;
-            ellipse.Width = width;
-            ellipse.Height = height;
-            ellipse.Focusable = false;
-            Thickness position = new Thickness(x1, y1, 0, 0);
-            ellipse.Margin = position;
+            Path path = new Path();
+            path.Stroke = color1;
+            path.StrokeThickness = thickness;
+            path.Fill = Brushes.Transparent;
 
-            ellipse.Fill = Brushes.Transparent;
+            EllipseGeometry ellipse = new EllipseGeometry();
+            ellipse.Center = new Point(x1, y1);
+            ellipse.RadiusX = width / 2;
+            ellipse.RadiusY = height / 2;
 
-            Thickness position3 = new Thickness(x1 + 2 * gridsize, y1 + gridsize * 2, 0, 0);
-            if (Uid.Contains("g"))
-            {
-                if (rotation == 0)
-                {
-                    DrawGround(canvas, x1 + gridsize, y1 + gridsize * 2, 1, 0, thickness, color1, color2, is_enabled, Uid);
-                }
-                if (rotation == 1)
-                {
-                    DrawGround(canvas, x1, y1 + gridsize, 1, 0, thickness, color1, color2, is_enabled, Uid);
-                }
-                if (rotation == 2)
-                {
-                    DrawGround(canvas, x1 + gridsize, y1 + gridsize * 2, 1, 0, thickness, color1, color2, is_enabled, Uid);
-                }
-                if (rotation == 3)
-                {
-                    DrawGround(canvas, x1 + 2 * gridsize, y1 + gridsize, 1, 0, thickness, color1, color2, is_enabled, Uid);
-                }
-            }
-            if (rotation == 0)
-            {
-                DrawLineCanvas(canvas, x1, y1 + gridsize, x1 - gridsize, y1 + gridsize, thickness, color1, is_enabled, Uid);
-            }
-            if (rotation == 1)
-            {
-                position3 = new Thickness(x1 + 2 * gridsize, y1 + gridsize * 3, 0, 0);
-                DrawLineCanvas(canvas, x1 + gridsize, y1, x1 + gridsize, y1 - gridsize, thickness, color1, is_enabled, Uid);
-            }
-            if (rotation == 2)
-            {
-                DrawLineCanvas(canvas, x1 + gridsize * 2, y1 + gridsize, x1 + gridsize * 3, y1 + gridsize, thickness, color1, is_enabled, Uid);
-            }
-            if (rotation == 3)
-            {
-                DrawLineCanvas(canvas, x1 + gridsize, y1 + gridsize * 2, x1 + gridsize, y1 + gridsize * 3, thickness, color1, is_enabled, Uid);
-            }
+            LineGeometry line = new LineGeometry();
+            line.StartPoint = new Point(x1 + 20, y1);
+            line.EndPoint = new Point(x1 + 40, y1);
 
-            TextBlock label = new TextBlock() { Uid = Uid };
-            label.Width = 50;
-            if (Uid.Contains("GEN"))
+            line.StartPoint = RotatedPoint(line.StartPoint, x1, y1);
+            line.EndPoint = RotatedPoint(line.EndPoint, x1, y1);
+
+            GeometryGroup generator = new GeometryGroup();
+            generator.Children.Add(ellipse);
+            generator.Children.Add(line);
+
+            path.Data = generator;
+            path.Uid = Uid;
+
+            Point text_position = RotatedPoint(new Point(x1 - gridsize, y1 - gridsize * 2), x1, y1);
+
+            TextBlock label = Text(text_position, Uid);
+
+            canvas.Children.Add(path);
+            canvas.Children.Add(label);
+        }
+
+        public void DrawBreaker(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid, string LongUid)
+        {
+            Path path = new Path();
+            path.Stroke = color1;
+            path.StrokeThickness = thickness;
+
+            if (LongUid.Contains("e") == false)
             {
-                label.Text = Uid;
-                if (Uid.Contains("g"))
-                {
-                    label.Text = label.Text.Remove(label.Text.Count() - 1);
-                }
+                path.Fill = Brushes.Transparent;
             }
             else
             {
-                label.Text = "";
+                path.Fill = color1;
             }
-            label.TextWrapping = TextWrapping.WrapWithOverflow;
 
-            label.Margin = position3;
-            label.Background = Brushes.Transparent;
+            RectangleGeometry rectangle = new RectangleGeometry();
+            rectangle.Rect = new Rect(x1 - 0.625*gridsize, y1 - 0.625*gridsize, gridsize*1.25, gridsize*1.25);
 
-            canvas.Children.Add(ellipse);
-            canvas.Children.Add(label);
+            GeometryGroup breaker = new GeometryGroup();
+            breaker.Children.Add(rectangle);
+
+            path.Data = breaker;
+            path.Uid = Uid;
+
+            canvas.Children.Add(path);
+        }
+
+        public void DrawTransLine(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid, string LongUid)
+        {
+            Path path = new Path();
+            path.Stroke = color1;
+            path.StrokeThickness = thickness;
+
+            LineGeometry terminal1 = new LineGeometry();
+            terminal1.StartPoint = RotatedPoint(new Point(x1, y1 - gridsize), x1, y1);
+            terminal1.EndPoint = RotatedPoint(new Point(x1, y1 + gridsize), x1, y1);
+
+            LineGeometry terminal2 = new LineGeometry();
+            terminal2.StartPoint = RotatedPoint(new Point(x1 + 5*gridsize, y1 - gridsize), x1, y1);
+            terminal2.EndPoint = RotatedPoint(new Point(x1 + 5*gridsize, y1 + gridsize), x1, y1);
+
+            LineGeometry line1 = new LineGeometry();
+            line1.StartPoint = new Point(x1, y1);
+            line1.EndPoint = RotatedPoint(new Point(x1 + 5 * gridsize, y1), x1, y1);
+
+            LineGeometry line2 = new LineGeometry();
+            line2.StartPoint = RotatedPoint(new Point(x1, y1 + gridsize / 2), x1, y1);
+            line2.EndPoint = RotatedPoint(new Point(x1 + 5 * gridsize, y1 + gridsize / 2), x1, y1);
+
+            LineGeometry line3 = new LineGeometry();
+            line3.StartPoint = RotatedPoint(new Point(x1, y1 - gridsize / 2), x1, y1);
+            line3.EndPoint = RotatedPoint(new Point(x1 + 5 * gridsize, y1 - gridsize / 2), x1, y1);
+
+            GeometryGroup TransLine = new GeometryGroup();
+            TransLine.Children.Add(terminal1);
+            TransLine.Children.Add(terminal2);
+            TransLine.Children.Add(line1);
+            TransLine.Children.Add(line2);
+            TransLine.Children.Add(line3);
+
+            path.Data = TransLine;
+            path.Uid = Uid;
+
+            canvas.Children.Add(path);
+        }
+
+        public void TripBreakers(Canvas canvas, Powersystem.PowSysElementBase breaker)
+        {
+            canvas.Dispatcher.Invoke(() =>
+            {
+                string Uid = breaker.GetUid().Remove(breaker.GetUid().Length - 1);
+                Path element = FindContainUid(breaker.GetUid(), canvas)[0] as Path;
+                element.Fill = Brushes.Transparent;
+                CanvasReinitialize(canvas);
+            });
         }
 
         public void DrawGround(Canvas canvas, int x1, int y1, int length_grid, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid)
@@ -557,6 +628,56 @@ namespace Anfang
                 canvas.Children.Add(line);
             }
         }
+
+        Point RotatedPoint(Point point, int center_x, int center_y)
+        {
+            RotateTransform rotator = new RotateTransform();
+            if (rotation == 0)
+            {
+                rotator.Angle = 0;
+            }
+            if (rotation == 1)
+            {
+                rotator.Angle = 90;
+            }
+            if (rotation == 2)
+            {
+                rotator.Angle = 180;
+            }
+            if (rotation == 3)
+            {
+                rotator.Angle = 270;
+            }
+            rotator.CenterX = center_x;
+            rotator.CenterY = center_y;
+            Point rotated = rotator.Transform(point);
+            return rotated;
+        }
+
+        TextBlock Text(Point point, string Uid)
+        {
+            TextBlock label = new TextBlock() { Uid = Uid };
+            label.Width = 50;
+            if (Uid.Contains("GEN"))
+            {
+                label.Text = Uid;
+                if (Uid.Contains("g"))
+                {
+                    label.Text = label.Text.Remove(label.Text.Count() - 1);
+                }
+            }
+            else
+            {
+                label.Text = "";
+            }
+            label.TextWrapping = TextWrapping.WrapWithOverflow;
+
+            Thickness position = new Thickness(point.X, point.Y, 0, 0);
+            label.Margin = position;
+            label.Background = Brushes.Transparent;
+            return label;
+        }
+
         public List<UIElement> FindSameUid(string Uid, Canvas canvas)
         {
             List<UIElement> grouped_elements = new List<UIElement>();

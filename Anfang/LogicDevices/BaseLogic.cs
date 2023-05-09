@@ -63,7 +63,7 @@ namespace Anfang.LogicDevices
             }
         }
 
-        public Complex32 triplevel = new Complex32();
+        public float triplevel = new float();
 
         public int internal_time = 0;
         public int sim_time_step = 0;

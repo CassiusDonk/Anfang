@@ -14,7 +14,7 @@ namespace Anfang
         public List<String> logic_config = new List<String>();
         public List<Complex32> analogInputs = new List<Complex32>();
         public List<bool> discreteInputs = new List<bool>();
-        public List<Complex32> tripLevels = new List<Complex32>();
+        public List<float> tripLevels = new List<float>();
         public List<int> timer_delays = new List<int>();
         public int sim_time = 0;
         public int sim_time_step = 0;
