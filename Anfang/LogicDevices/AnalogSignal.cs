@@ -19,8 +19,8 @@ namespace Anfang.LogicDevices
             this.label = label;
         }
 
-        public override void NotifyInputComplexChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change. This uses complex input.
+        public override void UpdateOutput()
+        {
             output_complex = input_complex;
         }
     }

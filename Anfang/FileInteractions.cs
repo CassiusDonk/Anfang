@@ -130,6 +130,8 @@ namespace Anfang
                 string triplevels = FloatListToString(prot.tripLevels);
                 string delays = IntListToString(prot.timer_delays);
                 string breakers = IntListToString(prot.breaker_numbers);
+                string analogs_start = "ANALOGS";
+                string analogs_end = "ANALOGS_END";
                 string separator = "END";
 
                 data.Add(header);
@@ -137,6 +139,12 @@ namespace Anfang
                 data.Add(triplevels);
                 data.Add(delays);
                 data.Add(breakers);
+                data.Add(analogs_start);
+                foreach (AnalogInputLink analogInputLink in prot.analogInputLinks)
+                {
+                    data.Add($"{analogInputLink.id},{analogInputLink.isVoltage},{analogInputLink.phase},{analogInputLink.side}");
+                }
+                data.Add(analogs_end);
                 data.Add(separator);
             }
             return data;
@@ -181,6 +189,26 @@ namespace Anfang
                 prot.logic_config.AddRange(logic);
 
                 List<string> triplevels = SplitParams(list[2]);
+
+                List<List<string>> analogs = new List<List<string>>();
+                bool separate_analogs = false;
+                foreach (string line in list)
+                {
+                    if (line == "ANALOGS")
+                    {
+                        separate_analogs = true;
+                    }
+                    if (line == "ANALOGS_END")
+                    {
+                        separate_analogs = false;
+                    }
+                    if (separate_analogs & line != "ANALOGS")
+                    {
+                        List<string> analog = SplitParams(line);
+                        analogs.Add(analog);
+                    }
+                }
+
                 foreach (string line in triplevels)
                 {
                     prot.tripLevels.Add(TryToParseFloat(line));
@@ -196,6 +224,19 @@ namespace Anfang
                 foreach (string line in breakers)
                 {
                     prot.breaker_numbers.Add(TryToParseInt(line));
+                }
+
+                foreach (List<string> analog in analogs)
+                {
+                    int id = TryToParseInt(analog[0]);
+                    bool isVoltage = false;
+                    if (analog[1] == "True")
+                    {
+                        isVoltage = true;
+                    }
+                    string phase = analog[2];
+                    int side = TryToParseInt(analog[3]);
+                    prot.analogInputLinks.Add(new AnalogInputLink { id = id, isVoltage = isVoltage, phase = phase, side = side });
                 }
 
                 protectiongrid_collection.Add(prot);

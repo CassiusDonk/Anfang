@@ -27,8 +27,8 @@ namespace Anfang.LogicDevices
             }
         }
 
-        public override void NotifyInputBoolChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change. This uses a single bool input.
+        public override void UpdateOutput()
+        {
             if (input_bool == true)
             {
                 output = false;

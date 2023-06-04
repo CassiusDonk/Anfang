@@ -18,7 +18,22 @@ namespace Anfang
         public List<int> timer_delays = new List<int>();
         public int sim_time = 0;
         public int sim_time_step = 0;
-        public bool init = false;
+        public bool init
+        {
+            get
+            {
+                return init_old;
+            }
+            set
+            {
+                if (value != this.init_old)
+                {
+                    this.init_old = value;
+                    ProtStart();
+                }
+            }
+        }
+        public bool init_old;
         public bool trip_old;
         public ObservableCollection<PowSysElementBase> powersystem;
         public bool trip
@@ -84,6 +99,10 @@ namespace Anfang
                 {
                     logic_devices.Add(new LogicDevices.Invert(item));
                 }
+                if (item.Contains("Phasr") == true | item.Contains("phasr") == true)
+                {
+                    logic_devices.Add(new LogicDevices.Phasor(item));
+                }
             }
         }
 
@@ -96,6 +115,7 @@ namespace Anfang
             Type invert = GetType("Anfang.LogicDevices.Invert");
             Type or = GetType("Anfang.LogicDevices.OR");
             Type timer = GetType("Anfang.LogicDevices.Timer");
+            Type phasor = GetType("Anfang.LogicDevices.Phasor");
 
             int analogInputNumber = 0;
             int triplevelNumber = 0;
@@ -109,28 +129,50 @@ namespace Anfang
 
                 if (logic_device.GetType() == analog)
                 {
-                    logic_device.input_complex = analogInputs[analogInputNumber]; // connect analog value to this analog signal
-                    analogInputNumber++;
-                    if (logic_devices[n].GetType() == comp)
+                    
+                    if (logic_devices.FindAll(x => x.label == logic_device.label).Count > 1)
                     {
-                        logic_devices[n].triplevel = tripLevels[triplevelNumber];
-                        triplevelNumber++;
-                        logic_devices[n].input_complex = logic_device.output_complex;
+                        logic_device.input_complex = analogInputs[logic_devices.FindAll(x => x.label.Contains("Analog") | x.label.Contains("Analog")).FindIndex(x => x.label == logic_device.label)];
+                    }
+                    else
+                    {
+                        logic_device.input_complex = analogInputs[analogInputNumber]; // connect analog value to this analog signal
+                        analogInputNumber++;
+                    }
+                    logic_device.UpdateOutput();
+                    while (true) // find next suitable logic device and connect to it
+                    {
+                        if (logic_devices[n].GetType() == comp)
+                        {
+                            logic_devices[n].triplevel = tripLevels[triplevelNumber];
+                            triplevelNumber++;
+                            logic_devices[n].input_complex = logic_device.output_complex;
+                            break;
+                        }
+                        if (logic_devices[n].GetType() == phasor)
+                        {
+                            logic_devices[n].sim_time = sim_time;
+                            logic_devices[n].input_complex_list.Add(logic_device.output_complex);
+                            logic_devices[n].input_complex = logic_device.output_complex;
+                            break;
+                        }
+                        n++;
                     }
                 }
                 if (logic_device.GetType() == comp |
                     logic_device.GetType() == and |
                     logic_device.GetType() == invert |
                     logic_device.GetType() == or |
-                    logic_device.GetType() == timer)
+                    logic_device.GetType() == timer |
+                    logic_device.GetType() == phasor)
                 {
                     if (logic_device.GetType() == timer) // set timer params
                     {
                         logic_device.delay = timer_delays[delayNumber];
                         delayNumber++;
                         logic_device.sim_time_step = sim_time_step;
-                        logic_device.sim_time = sim_time;
                     }
+                    logic_device.UpdateOutput();
                     while (true) // find next suitable logic device and connect to it
                     {
                         if (logic_devices[n].GetType() == discr |
@@ -212,6 +254,10 @@ namespace Anfang
                             {
                                 analogInputs.Add(element.currents_side1[2]);
                             }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs.Add(element.currents_side1[3]);
+                            }
                         }
                         if (analogInputLink.side == 2)
                         {
@@ -227,11 +273,52 @@ namespace Anfang
                             {
                                 analogInputs.Add(element.currents_side2[2]);
                             }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs.Add(element.currents_side2[3]);
+                            }
                         }
                     }
                     else // voltages
                     {
-
+                        if (analogInputLink.side == 1)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs.Add(element.voltages_side1[0]);
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs.Add(element.voltages_side1[1]);
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs.Add(element.voltages_side1[2]);
+                            }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs.Add(element.voltages_side1[3]);
+                            }
+                        }
+                        if (analogInputLink.side == 2)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs.Add(element.voltages_side2[0]);
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs.Add(element.voltages_side2[1]);
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs.Add(element.voltages_side2[2]);
+                            }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs.Add(element.voltages_side2[3]);
+                            }
+                        }
                     }
                 }
             }
@@ -257,6 +344,10 @@ namespace Anfang
                             {
                                 analogInputs[i] = element.currents_side1[2];
                             }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs[i] = element.currents_side1[3];
+                            }
                         }
                         if (analogInputLink.side == 2)
                         {
@@ -272,11 +363,52 @@ namespace Anfang
                             {
                                 analogInputs[i] = element.currents_side2[2];
                             }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs[i] = element.currents_side2[3];
+                            }
                         }
                     }
                     else
                     {
-
+                        if (analogInputLink.side == 1)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs[i] = element.voltages_side1[0];
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs[i] = element.voltages_side1[1];
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs[i] = element.voltages_side1[2];
+                            }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs[i] = element.voltages_side1[2];
+                            }
+                        }
+                        if (analogInputLink.side == 2)
+                        {
+                            if (analogInputLink.phase == "A")
+                            {
+                                analogInputs[i] = element.voltages_side2[0];
+                            }
+                            if (analogInputLink.phase == "B")
+                            {
+                                analogInputs[i] = element.voltages_side2[1];
+                            }
+                            if (analogInputLink.phase == "C")
+                            {
+                                analogInputs[i] = element.voltages_side2[2];
+                            }
+                            if (analogInputLink.phase == "N")
+                            {
+                                analogInputs[i] = element.voltages_side2[3];
+                            }
+                        }
                     }
                     i++;
                 }
@@ -310,9 +442,17 @@ namespace Anfang
             }
         }
 
+        public event PropertyChangedEventHandler Start;
+        public void ProtStart([CallerMemberName] String propertyName = "")
+        {
+            Start?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public void ResetLogic()
         {
             logic_devices.Clear();
+            analogInputs.Clear();
+            analogInputs.TrimExcess();
         }
 
         public Type GetType(string strFullyQualifiedName)

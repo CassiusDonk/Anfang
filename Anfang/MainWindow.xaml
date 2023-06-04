@@ -7,162 +7,77 @@
         xmlns:Powersystem="clr-namespace:Anfang.Powersystem" x:Class="Anfang.MainWindow"
         mc:Ignorable="d"
         Title="MainWindow" Height="1080" Width="1920" SizeToContent="Manual" HorizontalAlignment="Left" VerticalAlignment="Top">
-    <Grid HorizontalAlignment="Left" Width="1920">
-        <Button Content="Calculate" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="Button_Click"/>
-        <Label x:Name="debug_label" Content="Label" HorizontalAlignment="Left" Margin="225,11,0,0" VerticalAlignment="Top" Foreground="Black"/>
-        <DataGrid x:Name="inputgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" AutoGeneratingColumn="Inputgrid_AutoGeneratingColumn" Height="225" Margin="980,757,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="825">
-            <DataGrid.DataContext>
-                <local:Branch/>
-            </DataGrid.DataContext>
-        </DataGrid>
-        <Canvas x:Name="Canvas" Margin="10,75,910,0" Height="400" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" MouseLeave="Canvas_MouseLeave"/>
-        <Button x:Name="sim_start_btn" Content="Start Sim" HorizontalAlignment="Left" Margin="82,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_start_btn_Click"/>
-        <Label x:Name="debug_label_2" Content="Label" HorizontalAlignment="Left" Margin="225,42,0,0" VerticalAlignment="Top" Foreground="Black"/>
-        <Button x:Name="sim_stop_btn" Content="Stop Sim" HorizontalAlignment="Left" Margin="153,10,0,0" VerticalAlignment="Top" Height="30" Width="61" Click="sim_stop_btn_Click"/>
-        <Label x:Name="debug_label_3" Content="Label" HorizontalAlignment="Left" Margin="225,75,0,0" VerticalAlignment="Top" Foreground="Black"/>
-        <DataGrid x:Name="protectiongrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="18,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="protectiongrid_AutoGeneratingColumn_1" CurrentCellChanged="protectiongrid_CurrentCellChanged_1" SelectionChanged="protectiongrid_SelectionChanged">
+    <Grid>
+        <Button Content="CALCULATE (РАСЧЁТ)" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="Button_Click" Background="#FFFFE800" FontSize="14" FontWeight="Bold"/>
+        <Canvas x:Name="Canvas" Margin="10,75,960,0" Height="521" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" MouseLeave="Canvas_MouseLeave"/>
+        <Button x:Name="sim_start_btn" Content="START (ПУСК)" HorizontalAlignment="Left" Margin="165,10,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="sim_start_btn_Click" Background="#FF51FF00" FontSize="14" FontWeight="Bold"/>
+        <Button x:Name="sim_stop_btn" Content="STOP (ОСТАНОВИТЬ)" HorizontalAlignment="Left" Margin="320,10,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="sim_stop_btn_Click" FontWeight="Bold" FontFamily="Segoe UI" FontSize="14" Background="Red"/>
+        <DataGrid x:Name="protectiongrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="0,630,800,0" AutoGeneratingColumn="protectiongrid_AutoGeneratingColumn_1" CurrentCellChanged="protectiongrid_CurrentCellChanged_1" SelectionChanged="protectiongrid_SelectionChanged" Height="371" VerticalAlignment="Top" HorizontalAlignment="Right" Width="148">
             <DataGrid.DataContext>
                 <local:Protection/>
             </DataGrid.DataContext>
         </DataGrid>
-        <DataGrid x:Name="logicgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="173,534,0,0" VerticalAlignment="Top" Width="150" CurrentCellChanged="logicgrid_CurrentCellChanged" AutoGeneratingColumn="logicgrid_AutoGeneratingColumn" SelectionChanged="logicgrid_SelectionChanged">
+        <DataGrid x:Name="logicgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,645,0" VerticalAlignment="Top" CurrentCellChanged="logicgrid_CurrentCellChanged" AutoGeneratingColumn="logicgrid_AutoGeneratingColumn" SelectionChanged="logicgrid_SelectionChanged" HorizontalAlignment="Right" Width="150">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Protections" HorizontalAlignment="Left" Margin="18,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
-            <Label.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                            <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                            <RotateTransform Angle="-90" CenterY="0.5" CenterX="0.5"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FF4600FF" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
-            </Label.Background>
-        </Label>
-        <Label Content="Logic" HorizontalAlignment="Left" Margin="173,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
-            <Label.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                            <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                            <RotateTransform Angle="-90" CenterY="0.5" CenterX="0.5"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FF4600FF" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
-            </Label.Background>
-        </Label>
-        <DataGrid x:Name="tripgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="328,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="tripgrid_AutoGeneratingColumn" CurrentCellChanged="tripgrid_CurrentCellChanged">
+        <Label Content="Protections (Защиты)" Margin="0,601,800,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="148"/>
+        <Label Content="Logic (Логика)" Margin="0,601,645,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="150"/>
+        <DataGrid x:Name="tripgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,500,0" VerticalAlignment="Top" AutoGeneratingColumn="tripgrid_AutoGeneratingColumn" CurrentCellChanged="tripgrid_CurrentCellChanged" HorizontalAlignment="Right" Width="140">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Trip Levels" HorizontalAlignment="Left" Margin="328,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
-            <Label.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                            <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                            <RotateTransform Angle="-90" CenterY="0.5" CenterX="0.5"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FF4600FF" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
-            </Label.Background>
-        </Label>
-        <DataGrid x:Name="delaygrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="483,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="delaygrid_AutoGeneratingColumn" CurrentCellChanged="delaygrid_CurrentCellChanged">
+        <Label Content="Trip Levels (Уставки)" Margin="0,601,500,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="140"/>
+        <DataGrid x:Name="delaygrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,364,0" VerticalAlignment="Top" AutoGeneratingColumn="delaygrid_AutoGeneratingColumn" CurrentCellChanged="delaygrid_CurrentCellChanged" HorizontalAlignment="Right" Width="131">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Timer Delays" HorizontalAlignment="Left" Margin="483,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
-            <Label.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                            <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                            <RotateTransform Angle="-90" CenterY="0.5" CenterX="0.5"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FF4600FF" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
-            </Label.Background>
-        </Label>
-        <DataGrid x:Name="analogsgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="638,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="analogsgrid_AutoGeneratingColumn" CurrentCellChanged="analogsgrid_CurrentCellChanged">
+        <Label Content="Delays (Выдержки)" Margin="0,601,364,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="131"/>
+        <DataGrid x:Name="analogsgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,195,0" VerticalAlignment="Top" AutoGeneratingColumn="analogsgrid_AutoGeneratingColumn" CurrentCellChanged="analogsgrid_CurrentCellChanged" HorizontalAlignment="Right" Width="164">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Analog Signals" HorizontalAlignment="Left" Margin="638,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
-            <Label.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                            <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                            <RotateTransform Angle="-90" CenterY="0.5" CenterX="0.5"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FF4600FF" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
-            </Label.Background>
-        </Label>
-        <DataGrid x:Name="breakersgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" HorizontalAlignment="Left" Height="200" Margin="793,534,0,0" VerticalAlignment="Top" Width="150" AutoGeneratingColumn="breakersgrid_AutoGeneratingColumn" CurrentCellChanged="breakersgrid_CurrentCellChanged">
+        <Label Content="Analogs (Аналог. сигн.)" Margin="0,601,195,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="164"/>
+        <DataGrid x:Name="breakersgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,25,0" VerticalAlignment="Top" AutoGeneratingColumn="breakersgrid_AutoGeneratingColumn" CurrentCellChanged="breakersgrid_CurrentCellChanged" HorizontalAlignment="Right" Width="165">
             <DataGrid.DataContext>
                 <local:LogicString/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Label Content="Breakers" HorizontalAlignment="Left" Margin="793,508,0,0" VerticalAlignment="Top" Width="150" FontStyle="Italic" FontFamily="Arial Narrow" Foreground="White">
-            <Label.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                            <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                            <RotateTransform Angle="-90" CenterY="0.5" CenterX="0.5"/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FF4600FF" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
-            </Label.Background>
-        </Label>
-        <DataGrid x:Name="powersysgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="225" Margin="10,757,960,0" VerticalAlignment="Top" SelectionChanged="powersysgrid_SelectionChanged">
+        <Label Content="Breakers (Выключатели)" Margin="0,601,25,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="165"/>
+        <DataGrid x:Name="powersysgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="400" Margin="10,601,960,0" VerticalAlignment="Top" SelectionChanged="powersysgrid_SelectionChanged" AutoGeneratingColumn="powersysgrid_AutoGeneratingColumn">
             <DataGrid.DataContext>
                 <Powersystem:PowSysElementBase/>
             </DataGrid.DataContext>
         </DataGrid>
-        <Button x:Name="pastebtn" Content="Duplicate Elements" HorizontalAlignment="Left" Margin="10,987,0,0" VerticalAlignment="Top" Click="pastebtn_Click" Width="164"/>
-        <DataGrid x:Name="resultconfig" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="226" Margin="1038,75,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="261" AutoGeneratingColumn="resultconfig_AutoGeneratedColumn">
+        <Button x:Name="pastebtn"  HorizontalAlignment="Left" Margin="10,1007,0,0" VerticalAlignment="Top" Click="pastebtn_Click" Width="164" Height="47" >
+            <TextBlock x:Name="pastebtn_txt" Text="Duplicate Elements (Дублировать элементы)" TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Left" TextAlignment="Center" FontSize="14"/>
+        </Button>
+        <DataGrid x:Name="resultconfig" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="0,370,687,0" AutoGeneratingColumn="resultconfig_AutoGeneratedColumn" Height="226" VerticalAlignment="Top" HorizontalAlignment="Right" Width="261">
             <DataGrid.DataContext>
                 <local:ResultsDisplay/>
             </DataGrid.DataContext>
         </DataGrid>
-        <TextBox x:Name="resultsbox" HorizontalAlignment="Left" Margin="1304,75,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="521" Height="226" AcceptsReturn="True" />
-        <TextBox x:Name="logger" HorizontalAlignment="Left" Margin="1397,339,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="428" Height="88" AcceptsReturn="True" />
-        <Button x:Name="asyncSimBtn" Content="Button" HorizontalAlignment="Left" Margin="303,15,0,0" VerticalAlignment="Top" Click="asyncSimBtn_Click"/>
-        <Button x:Name="savepwsbtn" Content="Save Powersystem" HorizontalAlignment="Left" Margin="179,987,0,0" VerticalAlignment="Top" Click="savepwsbtn_Click" Width="164" MouseLeave="savepwsbtn_MouseLeave"/>
-        <Button x:Name="loadpwsbtn" Content="Load Powersystem" HorizontalAlignment="Left" Margin="346,987,0,0" VerticalAlignment="Top" Click="loadpwsbtn_Click" Width="164" MouseLeave="loadpwsbtn_MouseLeave"/>
-        <Button x:Name="protsavebtn" Content="Save Protections" HorizontalAlignment="Left" Margin="21,483,0,0" VerticalAlignment="Top" Width="147" Click="protsavebtn_Click"/>
-        <Button x:Name="protloadbtn" Content="Load Protections" HorizontalAlignment="Left" Margin="174,483,0,0" VerticalAlignment="Top" Width="148" Click="protloadbtn_Click"/>
+        <TextBox x:Name="resultsbox" HorizontalAlignment="Right" Margin="0,0,25,728" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="923" Height="261" AcceptsReturn="True" FontFamily="Arial Narrow" FontSize="20" />
+        <TextBox x:Name="logger" Margin="0,370,25,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="226" AcceptsReturn="True" HorizontalAlignment="Right" Width="657" FontSize="20" FontFamily="Arial Narrow" />
+        <Button x:Name="savepwsbtn" HorizontalAlignment="Left" Margin="179,1007,0,0" VerticalAlignment="Top" Click="savepwsbtn_Click" Width="164" MouseLeave="savepwsbtn_MouseLeave" Height="47">
+            <TextBlock x:Name="savepwsbtn_txt" HorizontalAlignment="Left" Text="Save Powersystem (Сохранить схему)" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14"/>
+        </Button>
+        <Button x:Name="loadpwsbtn" HorizontalAlignment="Left" Margin="346,1007,0,0" VerticalAlignment="Top" Click="loadpwsbtn_Click" Width="164" MouseLeave="loadpwsbtn_MouseLeave" Height="47">
+            <TextBlock x:Name="loadpwsbtn_txt" Text="Load Powersystem               (Загрузить схему)" TextWrapping="Wrap" FontSize="14"/>
+        </Button>
+        <Button x:Name="protsavebtn" HorizontalAlignment="Right" Margin="0,1007,802,0" VerticalAlignment="Top" Width="146" Click="protsavebtn_Click" Height="47">
+            <TextBlock x:Name="protsavebtn_txt" Text="Save config           (Сохр. настройку)" TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Left" TextAlignment="Center" FontSize="14"/>
+        </Button>
+        <Button x:Name="protloadbtn" HorizontalAlignment="Right" Margin="0,1007,645,0" VerticalAlignment="Top" Width="148" Click="protloadbtn_Click" Height="47">
+            <TextBlock x:Name="protsavebtn_txt_Copy" Text="Load config           (Загр. настройку)" TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Center" TextAlignment="Center" FontSize="14"/>
+        </Button>
+        <Label Content="Values to display (Значения для вывода)" Margin="0,341,687,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="261"/>
+        <Label Content="Event log (Регистратор)" Margin="0,341,25,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="657"/>
+        <TextBlock x:Name="log_time" Text="0" TextWrapping="Wrap" FontSize="14" Margin="1765,341,25,694" Foreground="#FF0CFF00" FontStyle="Normal" FontWeight="Bold" FontFamily="Segoe UI"/>
+        <TextBlock x:Name="log_time_label" Text="Текущее время:" TextWrapping="NoWrap" FontSize="14" Margin="1631,341,90,694" Foreground="#FF0CFF00" FontStyle="Normal" FontWeight="Bold" FontFamily="Segoe UI"/>
     </Grid>
 </Window>

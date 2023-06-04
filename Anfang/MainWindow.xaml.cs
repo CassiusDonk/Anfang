@@ -26,7 +26,6 @@ namespace Anfang
 
         public List<Branch> branches = new List<Branch>();
 
-        private static readonly CustomObservable datagrid_collection = new CustomObservable();
         private static readonly ObservableCollection<Protection> protectiongrid_collection = new ObservableCollection<Protection>();
         private static readonly ObservableCollection<LogicString> logicgrid_collection = new ObservableCollection<LogicString>();
         private static readonly ObservableCollection<TripLevels> tripgrid_collection = new ObservableCollection<TripLevels>();
@@ -48,6 +47,7 @@ namespace Anfang
 
         bool tripEventSubscribed = false;
         bool propertyEventSubscribed = false;
+        bool startEventSubscribed = false;
 
         public MainWindow()
         {
@@ -55,7 +55,6 @@ namespace Anfang
 
             protectiongrid_collection.Add(new Protection() { label = "Prot1", init_label = "Comp1", trip_label = "Discrete1" });
 
-            inputgrid.ItemsSource = datagrid_collection;
             protectiongrid.ItemsSource = protectiongrid_collection;
             logicgrid.ItemsSource = logicgrid_collection;
             tripgrid.ItemsSource = tripgrid_collection;
@@ -124,6 +123,28 @@ namespace Anfang
 
         }
 
+        private void powersysgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            string headername = e.Column.Header.ToString();
+            if (headername == "elnode1") { e.Column.Header = "У1"; }
+            if (headername == "elnode2") { e.Column.Header = "У2"; }
+            if (headername == "type") { e.Column.Header = "тип"; }
+            if (headername == "property1") { e.Column.Header = "S/L"; }
+            if (headername == "property2") { e.Column.Header = "x''/x_уд/Uk%"; }
+            if (headername == "property3") { e.Column.Header = "E''/r_уд/Pk%"; }
+            if (headername == "property4") { e.Column.Header = "x2г/Pх/b_уд"; }
+            if (headername == "property5") { e.Column.Header = "x0г/iхх"; }
+            if (headername == "grounded") { e.Column.Header = "зазем"; }
+            if (headername == "ground_act") { e.Column.Header = "r_зазем"; }
+            if (headername == "ground_react") { e.Column.Header = "x_зазем"; }
+            if (headername == "voltage_side1") { e.Column.Header = "Uном1"; }
+            if (headername == "voltage_side2") { e.Column.Header = "Uном2"; }
+            if (headername == "currents_side1" | headername == "currents_side2")
+            {
+                e.Cancel = true;
+            }
+        }
+
         private void powersysgrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ElementsToCopy.Clear();
@@ -135,53 +156,28 @@ namespace Anfang
 
         private void Element_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            string name = e.PropertyName;
-            PowSysElementBase element = sender as PowSysElementBase;
-            datagrid_collection.FindCommonID(element.id);
-            if (element.type == "BRKR")
+            Dispatcher.CurrentDispatcher.Invoke(() =>
             {
-                string breaker = $"BRKR (ID = {element.id})";
-                if (e.PropertyName == "property1")
+                string name = e.PropertyName;
+                PowSysElementBase element = sender as PowSysElementBase;
+                if (element.type == "BRKR")
                 {
-                    LogEvent(breaker, e.PropertyName, element.property1.ToString());
+                    string breaker = $"BRKR (ID = {element.id})";
+                    if (e.PropertyName == "property1")
+                    {
+                        LogEvent(breaker, e.PropertyName, element.property1.ToString());
+                    }
+                    if (e.PropertyName == "property2")
+                    {
+                        LogEvent(breaker, e.PropertyName, element.property2.ToString());
+                    }
+                    if (e.PropertyName == "property3")
+                    {
+                        LogEvent(breaker, e.PropertyName, element.property3.ToString());
+                    }
+                    GraphOps.TripBreakers(Canvas, element);
                 }
-                if (e.PropertyName == "property2")
-                {
-                    LogEvent(breaker, e.PropertyName, element.property2.ToString());
-                }
-                if (e.PropertyName == "property3")
-                {
-                    LogEvent(breaker, e.PropertyName, element.property3.ToString());
-                }
-                GraphOps.TripBreakers(Canvas, element);
-            }
-
-            GraphOps.TripBreakers(Canvas, element);
-
-        }
-
-        private void Inputgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-            string headername = e.Column.Header.ToString();
-            if (headername == "Number" |
-                headername == "IsBreaker" |
-                headername == "Enabled" |
-                headername == "Node1" |
-                headername == "Node2" |
-                headername == "Ohms_Act" |
-                headername == "Ohms_React" |
-                headername == "E_Act" |
-                headername == "E_React" |
-                headername == "Current" |
-                headername == "Voltage_Node1" |
-                headername == "Voltage_Node2")
-            {
-                e.Cancel = false;
-            }
-            else
-            {
-                e.Cancel = true;
-            }
+            });
         }
 
         private void protectiongrid_AutoGeneratingColumn_1(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -258,11 +254,9 @@ namespace Anfang
                 }
                 else
                 {
-                    debug_label_2.Content = protectiongrid_selecteditem;
                     protectiongrid_selecteditem = null;
                 }
             }
-            debug_label_2.Content = protectiongrid_selecteditem;
         }
 
         private void logicgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -326,7 +320,6 @@ namespace Anfang
                     {
                         protections[protections.IndexOf(protectiongrid_selecteditem)].timer_delays.Add(item.delay);
                     }
-                    debug_label_3.Content = item.delay.GetType().ToString();
                 }
             }
             catch (System.ArgumentOutOfRangeException)
@@ -350,7 +343,6 @@ namespace Anfang
                     protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Add(
                         new AnalogInputLink() { isVoltage = item.isVoltage, id = item.id, phase = item.phase, side = item.side });
                 }
-                debug_label_3.Content = item.id.GetType().ToString();
             }
         }
 
@@ -387,7 +379,6 @@ namespace Anfang
 
         public void BuildGlobalModel()
         {
-            datagrid_collection.Clear();
             branches.Clear();
             int number = 1;
             foreach (var element in powersysgrid_collection)
@@ -396,7 +387,6 @@ namespace Anfang
                 foreach (var branch in element.model)
                 {
                     branch.Number = number;
-                    datagrid_collection.Add(branch);
                     branches.Add(branch);
                     number++;
                 }
@@ -408,17 +398,47 @@ namespace Anfang
             BuildGlobalModel();
             var BranchOps = new BranchOps();
             branchOps.CalculateNodeVoltages(branches, 0);
-            for (int i = 0; i < branches.Count(); i++)
-            {
-                datagrid_collection[i].Current = branches[i].Current;
-                datagrid_collection[i].Voltage_Node1 = branches[i].Voltage_Node1;
-                datagrid_collection[i].Voltage_Node2 = branches[i].Voltage_Node2;
-            }
             foreach (var element in powersysgrid_collection)
             {
                 element.UpdateResults();
             }
             DisplayResults();
+            foreach (PowSysElementBase element in powersysgrid_collection)
+            {
+                if (element.type == "ABCN" |
+                    element.type == "AN" |
+                    element.type == "BN" |
+                    element.type == "CN" |
+                    element.type == "AB" |
+                    element.type == "BC" |
+                    element.type == "AC" |
+                    element.type == "ABN" |
+                    element.type == "BCN" |
+                    element.type == "ACN")
+                {
+                    int node = element.elnode1;
+                    foreach (PowSysElementBase element1 in powersysgrid_collection)
+                    {
+                        string Uid = element.GetUid();
+                        if (element1.elnode1 == node)
+                        {
+                            GraphOps.DrawnItemPosition position = GraphOps.positions.Find(x => x.Uid == element1.GetUid());
+                            if (position != null)
+                            {
+                                GraphOps.DrawShortCircuit(Canvas, (int)position.X1, (int)position.Y1, 0, 0, 5, Brushes.Red, Brushes.Red, true, element.GetUid(), element.GetLongUid());
+                            }
+                        }
+                        if (element1.elnode2 == node)
+                        {
+                            GraphOps.DrawnItemPosition position = GraphOps.positions.Find(x => x.Uid == element1.GetUid());
+                            if (position != null)
+                            {
+                                GraphOps.DrawShortCircuit(Canvas, (int)position.X2, (int)position.Y2, 0, 0, 5, Brushes.Red, Brushes.Red, true, element.GetUid(), element.GetLongUid());
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public void DisplayResults()
@@ -484,6 +504,7 @@ namespace Anfang
         private void sim_start_btn_Click(object sender, RoutedEventArgs e)
         { // Simulation initiation.
             logger.Text = "";
+            log_time.Text = "";
             logger.Clear();
             tokenSource = new CancellationTokenSource();
             sim_time = 0;
@@ -521,6 +542,15 @@ namespace Anfang
                 tripEventSubscribed = true;
             }
 
+            if (startEventSubscribed == false)
+            {
+                foreach (var prot in protections)
+                {
+                    prot.Start += Prot_Start;
+                }
+                startEventSubscribed = true;
+            }
+
             if (propertyEventSubscribed == false)
             {
                 foreach (var element in powersysgrid_collection)
@@ -542,7 +572,7 @@ namespace Anfang
                 while (true)
                 {
                     await Tick();
-                    await Task.Delay(10, stopSim);
+                    await Task.Delay(200, stopSim);
                 }
             }
 
@@ -557,7 +587,10 @@ namespace Anfang
 
                 foreach (var element in powersysgrid_collection)
                 {
-                    element.UpdateResults();
+                    Dispatcher.Invoke(() =>
+                    {
+                        element.UpdateResults();
+                    });
                 }
 
                 foreach (var prot in protections)
@@ -571,8 +604,8 @@ namespace Anfang
 
                 Dispatcher.Invoke(() =>
                 {
-                    debug_label.Content = protections[0].trip;
                     DisplayResults();
+                    log_time.Text = sim_time.ToString();
                 });
                 sim_time += sim_step;
             }
@@ -598,6 +631,18 @@ namespace Anfang
                 }
                 propertyEventSubscribed = false;
             }
+            if (startEventSubscribed)
+            {
+                foreach (var prot in protections)
+                {
+                    prot.Start -= Prot_Start;
+                }
+                startEventSubscribed = false;
+            }
+            foreach (var prot in protections)
+            {
+                prot.ResetLogic();
+            }
         }
 
         public void Prot_Trip(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -609,8 +654,37 @@ namespace Anfang
 
         }
 
+        public void Prot_Start(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            string property = e.PropertyName;
+            Protection protection = sender as Protection;
+
+            LogEvent(protection.label, property, protection.init.ToString());
+
+        }
+
         public void LogEvent(string obj, string property, string value)
         {
+            if (property == "trip")
+            {
+                property = "Срабатывание";
+            }
+            if (property == "init")
+            {
+                property = "Пуск";
+            }
+            if (property == "property1")
+            {
+                property = "Фаза A";
+            }
+            if (property == "property2")
+            {
+                property = "Фаза B";
+            }
+            if (property == "property3")
+            {
+                property = "Фаза C";
+            }
             Dispatcher.Invoke(() =>
             {
                 logger.AppendText($"{ sim_time } ms: {obj} {property} = {value} {Environment.NewLine}");
@@ -650,25 +724,25 @@ namespace Anfang
         private void savepwsbtn_Click(object sender, RoutedEventArgs e)
         {
             fileInteractions.SaveData(fileInteractions.PowersystemToString(powersysgrid_collection), @"C:\Users\Default\Documents\AnfangPowersystem.txt");
-            savepwsbtn.Content = "Saved!";
-            loadpwsbtn.Content = "Load Powersystem";
+            savepwsbtn_txt.Text = "Saved!";
+            loadpwsbtn_txt.Text = "Load Powersystem   (Загрузить схему)";
         }
 
         private void loadpwsbtn_Click(object sender, RoutedEventArgs e)
         {
             fileInteractions.ReconstructPowersystem(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangPowersystem.txt"), powersysgrid_collection);
-            loadpwsbtn.Content = "Loaded!";
-            savepwsbtn.Content = "Save Powersystem";
+            loadpwsbtn_txt.Text = "Loaded!";
+            savepwsbtn_txt.Text = "Save Powersystem (Сохранить схему)";
         }
 
         private void savepwsbtn_MouseLeave(object sender, MouseEventArgs e)
         {
-            savepwsbtn.Content = "Save Powersystem";
+            savepwsbtn_txt.Text = "Save Powersystem (Сохранить схему)";
         }
 
         private void loadpwsbtn_MouseLeave(object sender, MouseEventArgs e)
         {
-            loadpwsbtn.Content = "Load Powersystem";
+            loadpwsbtn_txt.Text = "Load Powersystem   (Загрузить схему)";
         }
 
         private void protsavebtn_Click(object sender, RoutedEventArgs e)

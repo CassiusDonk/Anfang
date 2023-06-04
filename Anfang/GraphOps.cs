@@ -60,6 +60,17 @@ namespace Anfang
             rotation = 0;
         }
 
+        public class DrawnItemPosition
+        {
+            public string Uid { get; set; }
+            public double X1 { get; set; }
+            public double Y1 { get; set; }
+            public double X2 { get; set; }
+            public double Y2 { get; set; }
+        }
+
+        public List<DrawnItemPosition> positions = new List<DrawnItemPosition>();
+
         public int[] GetGridPosition(Grid grid)
         {
             int[] position = new int[2];
@@ -171,7 +182,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Red, Brushes.Blue, true, Uid, LongUID);
+                    DrawTransformer(Canvas, point1[0] - gridsize, point1[1] - gridsize, 40, 40, 3, Brushes.Black, Brushes.Black, true, Uid, LongUID);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -183,7 +194,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawGenerator(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid);
+                    DrawGenerator(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Black, Brushes.Black, true, Uid);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -195,7 +206,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawBreaker(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid, LongUID);
+                    DrawBreaker(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Black, Brushes.Black, true, Uid, LongUID);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -207,7 +218,7 @@ namespace Anfang
                 if (FindSameUid(Uid, Canvas).Count == 0 & line_points.Count == 1)
                 {
                     int[] point1 = SnapToGrid((int)line_points[line_points.Count() - 1].X, (int)line_points[line_points.Count() - 1].Y, gridsize);
-                    DrawTransLine(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Blue, Brushes.Blue, true, Uid, LongUID);
+                    DrawTransLine(Canvas, point1[0], point1[1], 40, 40, 3, Brushes.Black, Brushes.Black, true, Uid, LongUID);
                 }
                 line_points.Clear();
                 line_points.TrimExcess();
@@ -223,6 +234,7 @@ namespace Anfang
                         drawn_items.Remove(item.Uid);
                         Canvas.Children.Remove(item);
                         removed_uid = item.Uid;
+                        positions.Remove(positions.Find(x => x.Uid == item.Uid));
                     }
                 }
             }
@@ -525,6 +537,37 @@ namespace Anfang
             canvas.Children.Add(path);
         }
 
+        public void DrawShortCircuit(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid, string LongUid)
+        {
+            Path path = new Path();
+            path.Stroke = color1;
+            path.StrokeThickness = thickness;
+            path.Fill = color1;
+
+            EllipseGeometry ellipse = new EllipseGeometry();
+            ellipse.Center = new Point(x1, y1);
+            ellipse.RadiusX = thickness;
+            ellipse.RadiusY = thickness;
+
+            GeometryGroup geometry = new GeometryGroup();
+            geometry.Children.Add(ellipse);
+
+            path.Data = geometry;
+            path.Uid = Uid;
+
+            canvas.Children.Add(path);
+
+            TextBlock label = new TextBlock() { Uid = Uid };
+            label.Width = 50;
+            label.Text = Uid;
+            label.TextWrapping = TextWrapping.WrapWithOverflow;
+
+            label.Margin = new Thickness(x1, y1 - gridsize * 2, 0, 0);
+            label.Background = Brushes.Transparent;
+
+            canvas.Children.Add(label);
+        }
+
         public void DrawTransLine(Canvas canvas, int x1, int y1, int width, int height, int thickness, Brush color1, Brush color2, bool is_enabled, string Uid, string LongUid)
         {
             Path path = new Path();
@@ -539,6 +582,19 @@ namespace Anfang
             terminal2.StartPoint = RotatedPoint(new Point(x1 + 5*gridsize, y1 - gridsize), x1, y1);
             terminal2.EndPoint = RotatedPoint(new Point(x1 + 5*gridsize, y1 + gridsize), x1, y1);
 
+            GeometryGroup TransLine = new GeometryGroup();
+            TransLine.Children.Add(terminal1);
+            TransLine.Children.Add(terminal2);
+
+            path.Data = TransLine;
+            path.Uid = Uid;
+
+            canvas.Children.Add(path);
+
+            Path path2 = new Path();
+            path2.Stroke = color1;
+            path2.StrokeThickness = thickness * 2;
+
             LineGeometry line1 = new LineGeometry();
             line1.StartPoint = new Point(x1, y1);
             line1.EndPoint = RotatedPoint(new Point(x1 + 5 * gridsize, y1), x1, y1);
@@ -551,17 +607,20 @@ namespace Anfang
             line3.StartPoint = RotatedPoint(new Point(x1, y1 - gridsize / 2), x1, y1);
             line3.EndPoint = RotatedPoint(new Point(x1 + 5 * gridsize, y1 - gridsize / 2), x1, y1);
 
-            GeometryGroup TransLine = new GeometryGroup();
-            TransLine.Children.Add(terminal1);
-            TransLine.Children.Add(terminal2);
-            TransLine.Children.Add(line1);
-            TransLine.Children.Add(line2);
-            TransLine.Children.Add(line3);
+            GeometryGroup TransLine2 = new GeometryGroup();
+            TransLine2.Children.Add(line1);
+            //TransLine2.Children.Add(line2);
+            //TransLine2.Children.Add(line3);
 
-            path.Data = TransLine;
-            path.Uid = Uid;
+            path2.Data = TransLine2;
+            path2.Uid = Uid;
 
-            canvas.Children.Add(path);
+            canvas.Children.Add(path2);
+
+            if (Uid.Contains("preview") == false)
+            {
+                positions.Add(new DrawnItemPosition() { Uid = Uid, X1 = x1, Y1 = y1, X2 = RotatedPoint(new Point(x1 + 5 * gridsize, y1), x1, y1).X, Y2 = RotatedPoint(new Point(x1 + 5 * gridsize, y1), x1, y1).Y });
+            }
         }
 
         public void TripBreakers(Canvas canvas, Powersystem.PowSysElementBase breaker)
@@ -569,9 +628,12 @@ namespace Anfang
             canvas.Dispatcher.Invoke(() =>
             {
                 string Uid = breaker.GetUid().Remove(breaker.GetUid().Length - 1);
-                Path element = FindContainUid(breaker.GetUid(), canvas)[0] as Path;
-                element.Fill = Brushes.Transparent;
-                CanvasReinitialize(canvas);
+                if (FindContainUid(breaker.GetUid(), canvas).Count > 0)
+                {
+                    Path element = FindContainUid(breaker.GetUid(), canvas)[0] as Path;
+                    element.Fill = Brushes.Transparent;
+                    CanvasReinitialize(canvas);
+                }
             });
         }
 

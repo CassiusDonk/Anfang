@@ -106,99 +106,86 @@ namespace Anfang.Powersystem
         public int hidden_node_counter = 0;
         public List<int> elnodes;
         public CustomObservable model = new CustomObservable();
-        public string currents_side1_string { get; set; }
-        public List<Complex32> currents_side1
-        { 
-            get
-            {
-                return currents_side1_;
-            }
-            set
-            {
-                if (value != currents_side1_)
-                {
-                    currents_side1_ = value;
-                    UpdateResults();
-                }
-            }
-        }
-        private List<Complex32> currents_side1_;
+        public List<Complex32> currents_side1 = new List<Complex32>();
 
-        public List<Complex32> currents_side2
-        {
-            get
-            {
-                return currents_side2_;
-            }
-            set
-            {
-                if (value != currents_side2_)
-                {
-                    currents_side2_ = value;
-                    UpdateResults();
-                }
-            }
-        }
-        private List<Complex32> currents_side2_;
+        public List<Complex32> currents_side2 = new List<Complex32>();
+
+        public List<Complex32> voltages_side1 = new List<Complex32>();
+        public List<Complex32> voltages_side2 = new List<Complex32>();
 
         public void BuildModel()
         {
+            Complex32 currentA = new Complex32();
+            Complex32 currentB = new Complex32();
+            Complex32 currentC = new Complex32();
+            if (currents_side1 != null)
+            {
+                if (currents_side1.Count > 0)
+                {
+                    currentA = currents_side1[0];
+                    currentB = currents_side1[1];
+                    currentC = currents_side1[2];
+                }
+            }
             currents_side1 = new List<Complex32>();
             model.Clear();
             if (type == "GEN")
             {
-                float ohms_react = voltage_side2 * voltage_side2 / property1 * property2 * MathF.Sqrt(3) / 1.298F;
+                float ohms_react = property3 * voltage_side1 * voltage_side1 / (3 * property1) * property2;
+                float emf = property3 * voltage_side1 / MathF.Sqrt(3);
 
-                //float ohms0_react = voltage_side2 * voltage_side2 / property1 * property5;
-                //float ohms2_react = voltage_side2 * voltage_side2 / property1 * property4;
-
-                //Complex32[,] A = new Complex32[3, 3]
-                //{
-                    //{ 1, 1, 1 },
-                    //{ 1, Complex32.FromPolarCoordinates(1, DegsToRads(240)), Complex32.FromPolarCoordinates(1, DegsToRads(120)) },
-                    //{ 1, Complex32.FromPolarCoordinates(1, DegsToRads(120)), Complex32.FromPolarCoordinates(1, DegsToRads(240)) }
-                //};
-
-                //Complex32[] B = new Complex32[3] { new Complex32(ohms0_react, 0), new Complex32(ohms_react, 0), new Complex32(ohms2_react, 0), };
-
-                //Matrix<Complex32> A_ = Matrix<Complex32>.Build.DenseOfArray(A);
-                //Matrix<Complex32> A_inv = A_.Inverse();
-                //Vector<Complex32> Z = Vector<Complex32>.Build.DenseOfArray(B);
-
-               //Vector<Complex32> Zabc = A_ * Z * A_inv;
-
-                float DegsToRads(float degs)
+                float ohms0_react = voltage_side1 * voltage_side1 / (3 * property1) * property5;
+                if (property5 == 0)
                 {
-                    float rads = MathF.PI * degs / 180;
-                    return rads;
+                    ohms0_react = ohms_react;
                 }
+
+                float ohms2_react = voltage_side1 * voltage_side1 / (3 * property1) * property4;
+                if (property4 == 0)
+                {
+                    ohms2_react = ohms_react;
+                }
+
+                float ohms_phase = (ohms_react + ohms0_react + ohms2_react) / 3;
+                Complex32 ohms_m = (ohms_react * Complex32.FromPolarCoordinates(1, 180 * 120) + ohms2_react * Complex32.FromPolarCoordinates(1, 180 * 240) + ohms0_react) / 3;
+                Complex32 ohms_phase_ = new Complex32(0, ohms_phase) - ohms_m;
+
+                float delta_ohms = MathF.Sqrt(3) * (ohms_react - ohms2_react);
+
+                Complex32 depvoltA = -new Complex32(0, 1) * delta_ohms / 3 * currentA;
+                Complex32 depvoltB = -new Complex32(0, 1) * delta_ohms / 3 * currentB;
+                Complex32 depvoltC = -new Complex32(0, 1) * delta_ohms / 3 * currentC;
+
 
                 ResetCounters();
                 model.Add(new Branch()
                 {
                     Node1 = GetNewHiddenNode(),
                     Node2 = GetNewModelNode(elnode2),
-                    E_Act = Complex32.FromPolarCoordinates((float)property3, 0).Real,
-                    E_React = Complex32.FromPolarCoordinates((float)property3, 0).Imaginary,
-                    Ohms_React = ohms_react,
+                    E_Act = Complex32.FromPolarCoordinates((float)emf, 0).Real - depvoltA.Real,
+                    E_React = Complex32.FromPolarCoordinates((float)emf, 0).Imaginary - depvoltA.Imaginary,
+                    Ohms_React = ohms_phase_.Imaginary,
+                    Ohms_Act = ohms_phase_.Real,
                     id = id
                 });
                 model.Add(new Branch()
                 {
                     Node2 = GetNewModelNode(elnode2),
                     Node1 = model[0].Node1,
-                    E_Act = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 240).Real,
-                    E_React = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 240).Imaginary,
-                    Ohms_React = ohms_react,
+                    E_Act = Complex32.FromPolarCoordinates((float)emf, (float)Math.PI / 180 * 240).Real - depvoltB.Real,
+                    E_React = Complex32.FromPolarCoordinates((float)emf, (float)Math.PI / 180 * 240).Imaginary - depvoltB.Imaginary,
+                    Ohms_React = ohms_phase_.Imaginary,
+                    Ohms_Act = ohms_phase_.Real,
                     id = id
                 });
                 model.Add(new Branch()
                 {
                     Node2 = GetNewModelNode(elnode2),
                     Node1 = model[0].Node1,
-                    E_Act = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 120).Real,
-                    E_React = Complex32.FromPolarCoordinates((float)property3, (float)Math.PI / 180 * 120).Imaginary,
-                    Ohms_React = ohms_react,
+                    E_Act = Complex32.FromPolarCoordinates((float)emf, (float)Math.PI / 180 * 120).Real - depvoltC.Real,
+                    E_React = Complex32.FromPolarCoordinates((float)emf, (float)Math.PI / 180 * 120).Imaginary - depvoltC.Imaginary,
+                    Ohms_React = ohms_phase_.Imaginary,
+                    Ohms_Act = ohms_phase_.Real,
                     id = id
                 });
                 if (grounded)
@@ -239,16 +226,22 @@ namespace Anfang.Powersystem
                         id = id
                     });
                 }
+
+                float DegsToRads(float degs)
+                {
+                    float rads = MathF.PI * degs / 180;
+                    return rads;
+                }
             }
             if (type == "TRAN")
             {
                 currents_side1 = new List<Complex32>();
                 currents_side2 = new List<Complex32>();
                 ResetCounters();
-                float ohms_react = property2 / 100 * voltage_side2 * voltage_side2 / property1 / 2;
-                float ohms_act = property3 / property1 / property1 * voltage_side2 / 2;
+                float ohms_react = property2 / 100 * voltage_side2 * voltage_side2 / (property1 / 3) / 2;
+                float ohms_act = property3 / (property1 / 3) / (property1 / 3) * voltage_side2 / 2;
                 float ohms_magnet_act = voltage_side2 * voltage_side2 / property4;
-                float ohms_magnet_react = 100 / property5 * voltage_side2 / property1;
+                float ohms_magnet_react = 100 / property5 * voltage_side2 / (property1 / 3);
                 float sqrt3 = (float)Math.Sqrt(3);
                 Complex32 ohms = new Complex32(ohms_act, ohms_react);
                 Complex32 ohms_magnet = new Complex32(ohms_magnet_act, ohms_magnet_react);
@@ -283,10 +276,10 @@ namespace Anfang.Powersystem
                 currents_side1 = new List<Complex32>();
                 currents_side2 = new List<Complex32>();
                 ResetCounters();
-                float ohms_react = property2 / 100 * voltage_side2 * voltage_side2 / property1 / 2;
-                float ohms_act = property3 / property1 / property1 * voltage_side2 / 2;
+                float ohms_react = property2 / 100 * voltage_side2 * voltage_side2 / (property1 / 3) / 2;
+                float ohms_act = property3 / (property1 / 3) / (property1 / 3) * voltage_side2 / 2;
                 float ohms_magnet_act = voltage_side2 * voltage_side2 / property4;
-                float ohms_magnet_react = 100 / property5 * voltage_side2 / property1;
+                float ohms_magnet_react = 100 / property5 * voltage_side2 / (property1 / 3);
                 float sqrt3 = (float)Math.Sqrt(3);
                 Complex32 ohms = new Complex32(ohms_act, ohms_react);
                 Complex32 ohms_magnet = new Complex32(ohms_magnet_act, ohms_magnet_react);
@@ -343,6 +336,16 @@ namespace Anfang.Powersystem
                 int b = GetNewModelNode(elnode1);
                 int c = GetNewModelNode(elnode1);
                 int n = GetNewModelNode(elnode1);
+                model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
+                model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property3, Ohms_React = property4, id = id });
+            }
+            if (type == "ABN0")
+            {
+                ResetCounters();
+                int a = GetNewModelNode(elnode1);
+                int b = GetNewModelNode(elnode1);
+                int c = GetNewModelNode(elnode1);
+                int n = 0;
                 model.Add(new Branch() { Node1 = a, Node2 = n, Ohms_Act = property1, Ohms_React = property2, id = id });
                 model.Add(new Branch() { Node1 = b, Node2 = n, Ohms_Act = property3, Ohms_React = property4, id = id });
             }
@@ -501,10 +504,122 @@ namespace Anfang.Powersystem
                     model.Add(new Branch() { Node1 = model[2].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
                 }
             }
+            if (type == "LINEAN")
+            {
+                ResetCounters();
+
+                float x_line1 = property2 * property6;
+                float r_line1= property3 * property6;
+                Complex32 z_line1 = new Complex32(r_line1, x_line1);
+
+                float x_line2 = property2 * (property1 - property6);
+                float r_line2 = property3 * (property1 - property6);
+                Complex32 z_line2 = new Complex32(r_line2, x_line2);
+
+                float r0_line1 = ground_act * property6;
+                float x0_line1 = ground_react * property6;
+
+                float r0_line2 = ground_act * (property1 - property6);
+                float x0_line2 = ground_react * (property1 - property6);
+
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r_line1, Ohms_React = x_line1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r_line1, Ohms_React = x_line1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r_line1, Ohms_React = x_line1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r0_line1, Ohms_React = x0_line1 });
+
+                model.Add(new Branch() { Node1 = model[0].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r_line2, Ohms_React = x_line2 });
+                model.Add(new Branch() { Node1 = model[1].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r_line2, Ohms_React = x_line2 });
+                model.Add(new Branch() { Node1 = model[2].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r_line2, Ohms_React = x_line2 });
+                model.Add(new Branch() { Node1 = model[3].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r0_line2, Ohms_React = x0_line2 });
+
+                model.Add(new Branch() { Node1 = model[0].Node2, Node2 = model[3].Node2, Ohms_Act = 0, Ohms_React = 0, id = id });
+
+                if (property4 != 0 | property5 != 0)
+                {
+                    float b_line = property4 * property1 / 2 / 1000000;
+                    float g_line = property5 * property1 / 2 / 1000000;
+                    Complex32 y_line = 1 / new Complex32(g_line, b_line);
+
+                    int ground_elnode1 = model[3].Node1;
+                    int ground_elnode2 = model[3].Node2;
+
+                    model.Add(new Branch() { Node1 = model[0].Node1, Node2 = ground_elnode1, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[1].Node1, Node2 = ground_elnode1, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[2].Node1, Node2 = ground_elnode1, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+
+                    model.Add(new Branch() { Node1 = model[0].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[1].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[2].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                }
+            }
+            if (type == "LINEABN")
+            {
+                ResetCounters();
+
+                float x_line1 = property2 * property6;
+                float r_line1 = property3 * property6;
+                Complex32 z_line1 = new Complex32(r_line1, x_line1);
+
+                float x_line2 = property2 * (property1 - property6);
+                float r_line2 = property3 * (property1 - property6);
+                Complex32 z_line2 = new Complex32(r_line2, x_line2);
+
+                float r0_line1 = ground_act * property6;
+                float x0_line1 = ground_react * property6;
+
+                float r0_line2 = ground_act * (property1 - property6);
+                float x0_line2 = ground_react * (property1 - property6);
+
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r_line1, Ohms_React = x_line1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r_line1, Ohms_React = x_line1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r_line1, Ohms_React = x_line1 });
+                model.Add(new Branch() { Node1 = GetNewModelNode(elnode1), Node2 = GetNewHiddenNode(), Ohms_Act = r0_line1, Ohms_React = x0_line1 });
+
+                model.Add(new Branch() { Node1 = model[0].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r_line2, Ohms_React = x_line2 });
+                model.Add(new Branch() { Node1 = model[1].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r_line2, Ohms_React = x_line2 });
+                model.Add(new Branch() { Node1 = model[2].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r_line2, Ohms_React = x_line2 });
+                model.Add(new Branch() { Node1 = model[3].Node2, Node2 = GetNewModelNode(elnode2), Ohms_Act = r0_line2, Ohms_React = x0_line2 });
+
+                model.Add(new Branch() { Node1 = model[0].Node2, Node2 = model[3].Node2, Ohms_Act = 0, Ohms_React = 0, id = id });
+                model.Add(new Branch() { Node1 = model[1].Node2, Node2 = model[3].Node2, Ohms_Act = 0, Ohms_React = 0, id = id });
+
+                if (property4 != 0 | property5 != 0)
+                {
+                    float b_line = property4 * property1 / 2 / 1000000;
+                    float g_line = property5 * property1 / 2 / 1000000;
+                    Complex32 y_line = 1 / new Complex32(g_line, b_line);
+
+                    int ground_elnode1 = model[3].Node1;
+                    int ground_elnode2 = model[3].Node2;
+
+                    model.Add(new Branch() { Node1 = model[0].Node1, Node2 = ground_elnode1, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[1].Node1, Node2 = ground_elnode1, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[2].Node1, Node2 = ground_elnode1, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+
+                    model.Add(new Branch() { Node1 = model[0].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[1].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                    model.Add(new Branch() { Node1 = model[2].Node2, Node2 = ground_elnode2, Ohms_Act = y_line.Real, Ohms_React = y_line.Imaginary });
+                }
+            }
+
         }
 
         public void UpdateResults()
         {
+            currents_side1.Clear();
+            currents_side1.TrimExcess();
+            voltages_side1.Clear();
+            voltages_side1.TrimExcess();
+            if (voltages_side2 != null)
+            {
+                voltages_side2.Clear();
+                voltages_side2.TrimExcess();
+            }
+            if (currents_side2 != null)
+            {
+                currents_side2.Clear();
+                currents_side2.TrimExcess();
+            }
             if (model.Count() > 0)
             {
                 if (type == "GEN")
@@ -512,6 +627,12 @@ namespace Anfang.Powersystem
                     currents_side1.Add(model[0].Current);
                     currents_side1.Add(model[1].Current);
                     currents_side1.Add(model[2].Current);
+                    currents_side1.Add(currents_side1[0] + currents_side1[1] + currents_side1[2]);
+
+                    voltages_side1.Add(model[0].Voltage_Node2);
+                    voltages_side1.Add(model[1].Voltage_Node2);
+                    voltages_side1.Add(model[2].Voltage_Node2);
+                    voltages_side1.Add(voltages_side1[0] + voltages_side1[1] + voltages_side1[2]);
                 }
                 if (type == "TRAN" | type == "TRANM")
                 {
@@ -519,20 +640,77 @@ namespace Anfang.Powersystem
                     currents_side1.Add(model[0].Current + model[10].Current + model[9].Current);
                     currents_side1.Add(model[1].Current + model[4].Current + model[3].Current);
                     currents_side1.Add(model[2].Current + model[6].Current + model[7].Current);
+                    currents_side1.Add(currents_side1[0] + currents_side1[1] + currents_side1[2]);
+
+                    voltages_side1.Add(model[0].Voltage_Node1);
+                    voltages_side1.Add(model[1].Voltage_Node1);
+                    voltages_side1.Add(model[2].Voltage_Node1);
+                    voltages_side1.Add(voltages_side1[0] + voltages_side1[1] + voltages_side1[2]);
+
                     // side 2 - D-side
                     currents_side2.Add(model[3].Current + model[10].Current - model[5].Current + model[11].Current);
                     currents_side2.Add(model[4].Current + model[6].Current + model[5].Current - model[8].Current);
                     currents_side2.Add(model[7].Current + model[9].Current + model[8].Current - model[11].Current);
+                    currents_side2.Add(currents_side2[0] + currents_side2[1] + currents_side2[2]);
+
+                    voltages_side2.Add(model[3].Voltage_Node2);
+                    voltages_side2.Add(model[6].Voltage_Node2);
+                    voltages_side2.Add(model[9].Voltage_Node2);
+                    voltages_side2.Add(voltages_side2[0] + voltages_side2[1] + voltages_side2[2]);
+                }
+                if (type == "LINE")
+                {
+                    currents_side1.Add(model[0].Current);
+                    currents_side1.Add(model[1].Current);
+                    currents_side1.Add(model[2].Current);
+                    currents_side1.Add(currents_side1[0] + currents_side1[1] + currents_side1[2]);
+
+                    currents_side2.Add(model[0].Current);
+                    currents_side2.Add(model[1].Current);
+                    currents_side2.Add(model[2].Current);
+                    currents_side2.Add(currents_side1[0] + currents_side1[1] + currents_side1[2]);
+
+                    voltages_side1.Add(model[0].Voltage_Node1);
+                    voltages_side1.Add(model[1].Voltage_Node1);
+                    voltages_side1.Add(model[2].Voltage_Node1);
+                    voltages_side1.Add(voltages_side1[0] + voltages_side1[1] + voltages_side1[2]);
+
+                    voltages_side2.Add(model[0].Voltage_Node2);
+                    voltages_side2.Add(model[1].Voltage_Node2);
+                    voltages_side2.Add(model[2].Voltage_Node2);
+                    voltages_side2.Add(voltages_side2[0] + voltages_side2[1] + voltages_side2[2]);
+                }
+                if (type == "LINEAN" | type == "LINEABN")
+                {
+                    currents_side1.Add(model[0].Current);
+                    currents_side1.Add(model[1].Current);
+                    currents_side1.Add(model[2].Current);
+                    currents_side1.Add(currents_side1[0] + currents_side1[1] + currents_side1[2]);
+
+                    voltages_side1.Add(model[0].Voltage_Node1);
+                    voltages_side1.Add(model[1].Voltage_Node1);
+                    voltages_side1.Add(model[2].Voltage_Node1);
+                    voltages_side1.Add(voltages_side1[0] + voltages_side1[1] + voltages_side1[2]);
+
+                    currents_side2.Add(model[4].Current);
+                    currents_side2.Add(model[5].Current);
+                    currents_side2.Add(model[6].Current);
+                    currents_side2.Add(currents_side2[0] + currents_side2[1] + currents_side2[2]);
+
+                    voltages_side2.Add(model[4].Voltage_Node2);
+                    voltages_side2.Add(model[5].Voltage_Node2);
+                    voltages_side2.Add(model[6].Voltage_Node2);
+                    voltages_side2.Add(voltages_side2[0] + voltages_side2[1] + voltages_side2[2]);
                 }
                 for (int i = 0; i < currents_side1.Count() - 1; i++)
-                {
+                { // set values below a certain threshold to zero
                     if (currents_side1[i].Magnitude < 0.001)
                     {
                         currents_side1[i] = new Complex32(0, 0);
                     }
                 }
                 if (currents_side2 != null)
-                {
+                { // see above
                     for (int i = 0; i < currents_side2.Count() - 1; i++)
                     {
                         if (currents_side2[i].Magnitude < 0.001)

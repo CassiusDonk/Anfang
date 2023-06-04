@@ -25,6 +25,40 @@ namespace Anfang.LogicDevices
             }
         }
 
+        public Complex32 input_complex2_old = new Complex32();
+        public Complex32 input_complex2
+        {
+            get
+            {
+                return input_complex2_old;
+            }
+            set
+            {
+                if (value != this.input_complex2_old)
+                {
+                    this.input_complex2_old = value;
+                    NotifyInputComplexChanged();
+                }
+            }
+        }
+
+        public ObservableCollection<Complex32> input_complex_list_old = new ObservableCollection<Complex32>();
+        public ObservableCollection<Complex32> input_complex_list
+        {
+            get
+            {
+                return input_complex_list_old;
+            }
+            set
+            {
+                if (value != this.input_complex_list_old)
+                {
+                    this.input_complex_list_old = value;
+                    NotifyInputComplexChanged();
+                }
+            }
+        }
+
         public bool input_bool_old = false;
         public bool input_bool
         {
@@ -97,6 +131,11 @@ namespace Anfang.LogicDevices
 
         public virtual void NotifySimTimeChanged([CallerMemberName] String propertyName = "")
         { // Updates output value on sim time change.
+
+        }
+
+        public virtual void UpdateOutput()
+        {
 
         }
     }
