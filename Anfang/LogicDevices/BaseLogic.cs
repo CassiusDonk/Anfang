@@ -8,7 +8,10 @@ namespace Anfang.LogicDevices
 {
     public class BaseLogic : INotifyPropertyChanged
     {
+        public string inputType = "";
+        public string outputType = "";
         public Complex32 input_complex_old = new Complex32();
+
         public Complex32 input_complex
         {
             get
@@ -79,7 +82,7 @@ namespace Anfang.LogicDevices
         public ObservableCollection<bool> input_bool_list = new ObservableCollection<bool>();
 
         public bool init = false;
-        public int delay = 0;
+        public int delay { get; set; }
         public int sim_time_old = 0;
         public int sim_time
         {
@@ -97,7 +100,7 @@ namespace Anfang.LogicDevices
             }
         }
 
-        public float triplevel = new float();
+        public float triplevel { get; set; }
 
         public int internal_time = 0;
         public int sim_time_step = 0;
@@ -105,7 +108,7 @@ namespace Anfang.LogicDevices
         public bool output = false;
         public Complex32 output_complex = new Complex32();
 
-        public string label = "";
+        public string label { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -18,11 +18,20 @@ namespace Anfang.LogicDevices
         public DiscrSignal(string label)
         {
             this.label = label;
+            inputType = "Boolean";
+            outputType = "Boolean";
         }
 
-        public override void NotifyInputBoolChanged([CallerMemberName] String propertyName = "")
-        { // Updates output value on input change. This uses a single bool input.
-            output = input_bool;
+        public override void UpdateOutput()
+        {
+            if (input_bool == true)
+            {
+                output = true;
+            }
+            if (input_bool == false)
+            {
+                output = false;
+            }
         }
     }
 }

@@ -17,6 +17,8 @@ namespace Anfang.LogicDevices
         public Timer(string label)
         {
             this.label = label;
+            inputType = "Boolean";
+            outputType = "Boolean";
         }
 
         public override void UpdateOutput()
@@ -25,7 +27,7 @@ namespace Anfang.LogicDevices
             {
                 output = false;
             }
-            if (input_bool == true)
+            if (input_bool_list[0] == true)
             {
                 if (internal_time >= delay)
                 {
@@ -36,11 +38,12 @@ namespace Anfang.LogicDevices
                     internal_time += sim_time_step;
                 }
             }
-            if (input_bool == false)
+            if (input_bool_list[0] == false)
             {
                 output = false;
                 internal_time = 0;
             }
+            input_bool_list.Clear();
         }
     }
 }

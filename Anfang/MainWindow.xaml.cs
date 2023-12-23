@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace Anfang
 {
@@ -26,22 +24,22 @@ namespace Anfang
 
         public List<Branch> branches = new List<Branch>();
 
-        private static readonly ObservableCollection<Protection> protectiongrid_collection = new ObservableCollection<Protection>();
+        private static readonly ObservableCollection<ProtectionDevice> protectiongrid_collection = new ObservableCollection<ProtectionDevice>();
         private static readonly ObservableCollection<LogicString> logicgrid_collection = new ObservableCollection<LogicString>();
         private static readonly ObservableCollection<TripLevels> tripgrid_collection = new ObservableCollection<TripLevels>();
         private static readonly ObservableCollection<TimerDelays> delaygrid_collection = new ObservableCollection<TimerDelays>();
         private static readonly ObservableCollection<AnalogInputLink> analogsgrid_collection = new ObservableCollection<AnalogInputLink>();
         private static readonly ObservableCollection<BreakerLink> breakersgrid_collection = new ObservableCollection<BreakerLink>();
         private static readonly ObservableCollection<ResultsDisplay> resultconfig_collection = new ObservableCollection<ResultsDisplay>();
-        public ObservableCollection<PowSysElementBase> powersysgrid_collection = new ObservableCollection<PowSysElementBase>();
+        public PowSys powersysgrid_collection = new PowSys();
 
         FileInteractions fileInteractions = new FileInteractions();
 
-        public ObservableCollection<Protection> protections = new ObservableCollection<Protection>();
+        public ObservableCollection<ProtectionDevice> protections = new ObservableCollection<ProtectionDevice>();
 
-        public Protection protectiongrid_selecteditem { get; set; }
+        public ProtectionDevice protectiongrid_selecteditem { get; set; }
 
-        List<PowSysElementBase> ElementsToCopy = new List<PowSysElementBase>();
+        List<PowSysElementBase> ElementsToCopy = new List<PowSysElementBase>(); // this is a container used to store elements for copying.
 
         CancellationTokenSource tokenSource = new CancellationTokenSource();
 
@@ -53,74 +51,16 @@ namespace Anfang
         {
             InitializeComponent();
 
-            protectiongrid_collection.Add(new Protection() { label = "Prot1", init_label = "Comp1", trip_label = "Discrete1" });
+            protectiongrid_collection.Add(new ProtectionDevice() 
+            {   
+                label = "Prot1", 
+                description = "Test protection"
+
+            });
 
             protectiongrid.ItemsSource = protectiongrid_collection;
-            logicgrid.ItemsSource = logicgrid_collection;
-            tripgrid.ItemsSource = tripgrid_collection;
-            delaygrid.ItemsSource = delaygrid_collection;
-            analogsgrid.ItemsSource = analogsgrid_collection;
-            breakersgrid.ItemsSource = breakersgrid_collection;
             powersysgrid.ItemsSource = powersysgrid_collection;
             resultconfig.ItemsSource = resultconfig_collection;
-            powersysgrid_collection.Add(new PowSysElementBase()
-            {
-                id = 1,
-                type = "GEN",
-                elnode1 = 0,
-                elnode2 = 1,
-                property3 = 63.51F,
-                property1 = 75,
-                property2 = 0.146F,
-                grounded = false,
-                ground_act = 0,
-                ground_react = 0,
-                voltage_side2 = 115
-            });
-            powersysgrid_collection.Add(new PowSysElementBase()
-            {
-                id = 2,
-                type = "TRANM",
-                elnode1 = 2,
-                elnode2 = 1,
-                property1 = 80,
-                property2 = 10.5F,
-                property3 = 310,
-                property4 = 70,
-                property5 = 0.6F,
-                voltage_side2 = 115,
-                grounded = true,
-                ground_act = 0,
-                ground_react = 0
-            });
-            powersysgrid_collection.Add(new PowSysElementBase()
-            {
-                id = 4,
-                type = "BRKR",
-                elnode1 = 2,
-                elnode2 = 3,
-                property1 = 1,
-                property2 = 1,
-                property3 = 1
-            });
-            powersysgrid_collection.Add(new PowSysElementBase()
-            {
-                id = 5,
-                type = "LINE",
-                elnode1 = 3,
-                elnode2 = 4,
-                property1 = 100,
-                property2 = 0.435F,
-                property3 = 0.121F,
-                property4 = 2.6F
-            });
-            powersysgrid_collection.Add(new PowSysElementBase()
-            {
-                id = 3,
-                type = "AN",
-                elnode1 = 3,
-            });
-
         }
 
         private void powersysgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -182,20 +122,10 @@ namespace Anfang
 
         private void protectiongrid_AutoGeneratingColumn_1(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
-            string headername = e.Column.Header.ToString();
-            if (headername == "label" |
-                headername == "trip_label" |
-                headername == "init_label")
-            {
-                e.Cancel = false;
-            }
-            else
-            {
-                e.Cancel = true;
-            }
+
         }
 
-        private void protectiongrid_CurrentCellChanged_1(object sender, EventArgs e)
+        private void protectiongrid_CurrentCellChanged_1(object sender, EventArgs e) // refresh protections on update of protectiongrid.
         {
             protections.Clear();
             foreach (var protection in protectiongrid_collection)
@@ -204,148 +134,10 @@ namespace Anfang
             }
         }
 
-        private void protectiongrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        { // Update all conncected grids - retrive properties from the currently selected protection
-            logicgrid_collection.Clear();
-            tripgrid_collection.Clear();
-            delaygrid_collection.Clear();
-            analogsgrid_collection.Clear();
-            breakersgrid_collection.Clear();
-            if (protectiongrid.SelectedItem != null)
-            {
-                if (protectiongrid.SelectedItem.ToString() == "Anfang.Protection")
-                {
-                    protectiongrid_selecteditem = (Protection)protectiongrid.SelectedItem;
-                }
-                else
-                {
-                    protectiongrid_selecteditem = null;
-                }
-            }
-            else
-            {
-                protectiongrid_selecteditem = null;
-            }
-
-            if (protectiongrid_selecteditem != null)
-            {
-                if (protectiongrid_selecteditem.ToString() == "Anfang.Protection")
-                {
-                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].logic_config)
-                    {
-                        logicgrid_collection.Add(new LogicString() { logic_string = item });
-                    }
-                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].tripLevels)
-                    {
-                        tripgrid_collection.Add(new TripLevels() { Trip_Act = item });
-                    }
-                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].timer_delays)
-                    {
-                        delaygrid_collection.Add(new TimerDelays { delay = item });
-                    }
-                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].analogInputLinks)
-                    {
-                        analogsgrid_collection.Add(new AnalogInputLink { isVoltage = item.isVoltage, side = item.side, id = item.id, phase = item.phase });
-                    }
-                    foreach (var item in protections[protections.IndexOf((Protection)protectiongrid.SelectedItem)].breaker_numbers)
-                    {
-                        breakersgrid_collection.Add(new BreakerLink() { brerakerID = item });
-                    }
-                }
-                else
-                {
-                    protectiongrid_selecteditem = null;
-                }
-            }
-        }
-
-        private void logicgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        private void protectiongrid_SelectionChanged(object sender, SelectionChangedEventArgs e) // this retrieves properties of the selected protection upon selection change and updates associated tables.
         {
 
         }
-
-        private void logicgrid_CurrentCellChanged(object sender, EventArgs e)
-        {
-            if (protectiongrid_selecteditem != null)
-            {
-                protections[protections.IndexOf(protectiongrid_selecteditem)].logic_config.Clear();
-                foreach (var item in logicgrid_collection)
-                {
-                    if (item.logic_string != "")
-                    {
-                        protections[protections.IndexOf(protectiongrid_selecteditem)].logic_config.Add(item.logic_string);
-                    }
-                }
-            }
-        }
-
-        private void logicgrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
-
-        private void tripgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-
-        }
-
-        private void tripgrid_CurrentCellChanged(object sender, EventArgs e)
-        {
-            if (protectiongrid_selecteditem != null)
-            {
-                protections[protections.IndexOf(protectiongrid_selecteditem)].tripLevels.Clear();
-                foreach (var item in tripgrid_collection)
-                {
-                    if (item.Trip_Act.GetType().ToString() == "System.Single" | item.Trip_Act.GetType().ToString() == "System.Float")
-                    {
-                        protections[protections.IndexOf(protectiongrid_selecteditem)].tripLevels.Add(item.TripLevel);
-                    }
-                }
-            }
-        }
-
-        private void delaygrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-
-        }
-
-        private void delaygrid_CurrentCellChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                protections[protections.IndexOf(protectiongrid_selecteditem)].timer_delays.Clear();
-                foreach (var item in delaygrid_collection)
-                {
-                    if (item.delay.GetType().ToString() == "System.Int32")
-                    {
-                        protections[protections.IndexOf(protectiongrid_selecteditem)].timer_delays.Add(item.delay);
-                    }
-                }
-            }
-            catch (System.ArgumentOutOfRangeException)
-            {
-                resultsbox.Text = "No prot selected!";
-            }
-        }
-
-        private void analogsgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
-        {
-
-        }
-
-        private void analogsgrid_CurrentCellChanged(object sender, EventArgs e)
-        {
-            protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Clear();
-            foreach (var item in analogsgrid_collection)
-            {
-                if (item.id.GetType().ToString() == "System.Int32")
-                {
-                    protections[protections.IndexOf(protectiongrid_selecteditem)].analogInputLinks.Add(
-                        new AnalogInputLink() { isVoltage = item.isVoltage, id = item.id, phase = item.phase, side = item.side });
-                }
-            }
-        }
-
         private void breakersgrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
 
@@ -353,14 +145,7 @@ namespace Anfang
 
         private void breakersgrid_CurrentCellChanged(object sender, EventArgs e)
         {
-            protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Clear();
-            foreach (var item in breakersgrid_collection)
-            {
-                if (item.brerakerID.GetType().ToString() == "System.Int32")
-                {
-                    protections[protections.IndexOf(protectiongrid_selecteditem)].breaker_numbers.Add(item.brerakerID);
-                }
-            }
+
         }
 
         private void Branches_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -393,7 +178,7 @@ namespace Anfang
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e) // calculation routine
         {
             BuildGlobalModel();
             var BranchOps = new BranchOps();
@@ -509,29 +294,6 @@ namespace Anfang
             tokenSource = new CancellationTokenSource();
             sim_time = 0;
             int sim_step = 20;
-            bool logic_OK = false;
-
-            foreach (var prot in protections)
-            {
-                prot.ResetLogic();
-                prot.Initiate_logic();
-                try
-                {
-                    prot.powersystem = powersysgrid_collection;
-                    prot.sim_time = sim_time;
-                    prot.sim_time_step = sim_step;
-                    prot.TryEvaluateLogic();
-                }
-                catch (Exception)
-                {
-                    logic_OK = false;
-                    resultsbox.Text = $"Logic evaluation failure: {prot.label} {Environment.NewLine}";
-                    resultsbox.Text += "Sim aborted.";
-                }
-                logic_OK = true;
-                prot.ResetLogic();
-                prot.Initiate_logic();
-            }
 
             if (tripEventSubscribed == false)
             {
@@ -562,10 +324,7 @@ namespace Anfang
 
             CancellationToken stopSim = tokenSource.Token;
 
-            if (logic_OK)
-            {
-                Task.Run(Sim);
-            }
+            Task.Run(Sim);
 
             async Task Sim()
             {
@@ -576,7 +335,7 @@ namespace Anfang
                 }
             }
 
-            async Task Tick()
+            async Task Tick() // this is the main simulation routine performed on each cycle.
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -596,10 +355,10 @@ namespace Anfang
                 foreach (var prot in protections)
                 {
                     prot.powersystem = powersysgrid_collection;
-                    prot.getAnalogs();
                     prot.sim_time = sim_time;
                     prot.sim_time_step = sim_step;
-                    prot.EvaluateLogic();
+                    prot.UpdateInternalSignals(powersysgrid_collection);
+                    prot.ProcessProtectionFunctions();
                 }
 
                 Dispatcher.Invoke(() =>
@@ -639,28 +398,26 @@ namespace Anfang
                 }
                 startEventSubscribed = false;
             }
-            foreach (var prot in protections)
+            foreach (var protectionDevice in protections)
             {
-                prot.ResetLogic();
+                protectionDevice.ResetDevices();
             }
         }
 
         public void Prot_Trip(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             string property = e.PropertyName;
-            Protection protection = sender as Protection;
+            ProtectionDevice protection = sender as ProtectionDevice;
 
-            LogEvent(protection.label, property, protection.trip.ToString());
-
+            LogEvent(protection.label, property, "");
         }
 
         public void Prot_Start(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             string property = e.PropertyName;
-            Protection protection = sender as Protection;
+            ProtectionDevice protection = sender as ProtectionDevice;
 
-            LogEvent(protection.label, property, protection.init.ToString());
-
+            LogEvent(protection.label, property, "");
         }
 
         public void LogEvent(string obj, string property, string value)
@@ -747,12 +504,31 @@ namespace Anfang
 
         private void protsavebtn_Click(object sender, RoutedEventArgs e)
         {
-            fileInteractions.SaveData(fileInteractions.ProtectionsToString(protectiongrid_collection), @"C:\Users\Default\Documents\AnfangProtections.txt");
+            //fileInteractions.SaveData(fileInteractions.ProtectionsToString(protectiongrid_collection), @"C:\Users\Default\Documents\AnfangProtections.txt");
         }
 
         private void protloadbtn_Click(object sender, RoutedEventArgs e)
         {
-            fileInteractions.ReconstructProtections(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangProtections.txt"), protectiongrid_collection);
+            //fileInteractions.ReconstructProtections(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangProtections.txt"), protectiongrid_collection);
+        }
+
+        private void protconfigbtn_Click(object sender, RoutedEventArgs e)
+        {
+            ProtectionEditor protectionEditor = new ProtectionEditor();
+            protectionEditor.Owner = this;
+            if (protectiongrid.SelectedItem != null)
+            {
+                ProtectionDevice original = protectiongrid.SelectedItem as ProtectionDevice;
+                protectionEditor.protectionDevice = original.CreateCopy(original);
+                protectionEditor.LinkProtectionDevice();
+                protectionEditor.ShowDialog();
+            }
+            if (protectionEditor.DialogResult == true)
+            {
+                int index = protectiongrid_collection.IndexOf(protectiongrid.SelectedItem as ProtectionDevice);
+                protectiongrid_collection.RemoveAt(index);
+                protectiongrid_collection.Insert(index, protectionEditor.protectionDevice.CreateCopy(protectionEditor.protectionDevice));
+            }
         }
     }
 }

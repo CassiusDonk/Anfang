@@ -6,17 +6,15 @@ using System.Threading.Tasks;
 
 namespace Anfang
 {
-    public class AnalogInputLink
+    public class DiscreteInputLink
     {
         public int id { get; set; }
 
-        public int side { get; set; }
-
-        public bool isVoltage { get; set; }
-
         public string phase { get; set; }
 
-        public AnalogInputLink()
+        public string label { get; set; }
+
+        public DiscreteInputLink()
         {
 
         }

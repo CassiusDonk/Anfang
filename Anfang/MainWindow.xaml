@@ -12,42 +12,12 @@
         <Canvas x:Name="Canvas" Margin="10,75,960,0" Height="521" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" MouseLeave="Canvas_MouseLeave"/>
         <Button x:Name="sim_start_btn" Content="START (ПУСК)" HorizontalAlignment="Left" Margin="165,10,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="sim_start_btn_Click" Background="#FF51FF00" FontSize="14" FontWeight="Bold"/>
         <Button x:Name="sim_stop_btn" Content="STOP (ОСТАНОВИТЬ)" HorizontalAlignment="Left" Margin="320,10,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="sim_stop_btn_Click" FontWeight="Bold" FontFamily="Segoe UI" FontSize="14" Background="Red"/>
-        <DataGrid x:Name="protectiongrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="0,630,800,0" AutoGeneratingColumn="protectiongrid_AutoGeneratingColumn_1" CurrentCellChanged="protectiongrid_CurrentCellChanged_1" SelectionChanged="protectiongrid_SelectionChanged" Height="371" VerticalAlignment="Top" HorizontalAlignment="Right" Width="148">
+        <DataGrid x:Name="protectiongrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="0,630,25,0" AutoGeneratingColumn="protectiongrid_AutoGeneratingColumn_1" CurrentCellChanged="protectiongrid_CurrentCellChanged_1" SelectionChanged="protectiongrid_SelectionChanged" Height="371" VerticalAlignment="Top" HorizontalAlignment="Right" Width="923">
             <DataGrid.DataContext>
-                <local:Protection/>
+                <local:ProtectionDevice/>
             </DataGrid.DataContext>
         </DataGrid>
-        <DataGrid x:Name="logicgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,645,0" VerticalAlignment="Top" CurrentCellChanged="logicgrid_CurrentCellChanged" AutoGeneratingColumn="logicgrid_AutoGeneratingColumn" SelectionChanged="logicgrid_SelectionChanged" HorizontalAlignment="Right" Width="150">
-            <DataGrid.DataContext>
-                <local:LogicString/>
-            </DataGrid.DataContext>
-        </DataGrid>
-        <Label Content="Protections (Защиты)" Margin="0,601,800,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="148"/>
-        <Label Content="Logic (Логика)" Margin="0,601,645,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="150"/>
-        <DataGrid x:Name="tripgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,500,0" VerticalAlignment="Top" AutoGeneratingColumn="tripgrid_AutoGeneratingColumn" CurrentCellChanged="tripgrid_CurrentCellChanged" HorizontalAlignment="Right" Width="140">
-            <DataGrid.DataContext>
-                <local:LogicString/>
-            </DataGrid.DataContext>
-        </DataGrid>
-        <Label Content="Trip Levels (Уставки)" Margin="0,601,500,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="140"/>
-        <DataGrid x:Name="delaygrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,364,0" VerticalAlignment="Top" AutoGeneratingColumn="delaygrid_AutoGeneratingColumn" CurrentCellChanged="delaygrid_CurrentCellChanged" HorizontalAlignment="Right" Width="131">
-            <DataGrid.DataContext>
-                <local:LogicString/>
-            </DataGrid.DataContext>
-        </DataGrid>
-        <Label Content="Delays (Выдержки)" Margin="0,601,364,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="131"/>
-        <DataGrid x:Name="analogsgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,195,0" VerticalAlignment="Top" AutoGeneratingColumn="analogsgrid_AutoGeneratingColumn" CurrentCellChanged="analogsgrid_CurrentCellChanged" HorizontalAlignment="Right" Width="164">
-            <DataGrid.DataContext>
-                <local:LogicString/>
-            </DataGrid.DataContext>
-        </DataGrid>
-        <Label Content="Analogs (Аналог. сигн.)" Margin="0,601,195,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="164"/>
-        <DataGrid x:Name="breakersgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="371" Margin="0,630,25,0" VerticalAlignment="Top" AutoGeneratingColumn="breakersgrid_AutoGeneratingColumn" CurrentCellChanged="breakersgrid_CurrentCellChanged" HorizontalAlignment="Right" Width="165">
-            <DataGrid.DataContext>
-                <local:LogicString/>
-            </DataGrid.DataContext>
-        </DataGrid>
-        <Label Content="Breakers (Выключатели)" Margin="0,601,25,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="165"/>
+        <Label Content="Protections (Защиты)" Margin="0,601,25,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="923"/>
         <DataGrid x:Name="powersysgrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="400" Margin="10,601,960,0" VerticalAlignment="Top" SelectionChanged="powersysgrid_SelectionChanged" AutoGeneratingColumn="powersysgrid_AutoGeneratingColumn">
             <DataGrid.DataContext>
                 <Powersystem:PowSysElementBase/>
@@ -70,14 +40,17 @@
             <TextBlock x:Name="loadpwsbtn_txt" Text="Load Powersystem               (Загрузить схему)" TextWrapping="Wrap" FontSize="14"/>
         </Button>
         <Button x:Name="protsavebtn" HorizontalAlignment="Right" Margin="0,1007,802,0" VerticalAlignment="Top" Width="146" Click="protsavebtn_Click" Height="47">
-            <TextBlock x:Name="protsavebtn_txt" Text="Save config           (Сохр. настройку)" TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Left" TextAlignment="Center" FontSize="14"/>
+            <TextBlock x:Name="protsavebtn_txt" Text="Сохранить..." TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Left" TextAlignment="Center" FontSize="14"/>
         </Button>
         <Button x:Name="protloadbtn" HorizontalAlignment="Right" Margin="0,1007,645,0" VerticalAlignment="Top" Width="148" Click="protloadbtn_Click" Height="47">
-            <TextBlock x:Name="protsavebtn_txt_Copy" Text="Load config           (Загр. настройку)" TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Center" TextAlignment="Center" FontSize="14"/>
+            <TextBlock x:Name="protsavebtn_txt_Copy" Text="Загрузить..." TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Center" TextAlignment="Center" FontSize="14"/>
         </Button>
         <Label Content="Values to display (Значения для вывода)" Margin="0,341,687,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="261"/>
         <Label Content="Event log (Регистратор)" Margin="0,341,25,0" VerticalAlignment="Top" FontStyle="Italic" FontFamily="Segoe UI" Foreground="White" Background="Black" FontSize="14" FontWeight="Normal" HorizontalAlignment="Right" Width="657"/>
         <TextBlock x:Name="log_time" Text="0" TextWrapping="Wrap" FontSize="14" Margin="1765,341,25,694" Foreground="#FF0CFF00" FontStyle="Normal" FontWeight="Bold" FontFamily="Segoe UI"/>
         <TextBlock x:Name="log_time_label" Text="Текущее время:" TextWrapping="NoWrap" FontSize="14" Margin="1631,341,90,694" Foreground="#FF0CFF00" FontStyle="Normal" FontWeight="Bold" FontFamily="Segoe UI"/>
+        <Button x:Name="protconfigbtn" HorizontalAlignment="Right" Margin="0,1007,486,0" VerticalAlignment="Top" Width="148" Click="protconfigbtn_Click" Height="47">
+            <TextBlock x:Name="protsavebtn_txt_Copy1" Text="Настройка..." TextWrapping="Wrap" Height="Auto" HorizontalAlignment="Center" TextAlignment="Center" FontSize="14"/>
+        </Button>
     </Grid>
 </Window>

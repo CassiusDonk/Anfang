@@ -17,11 +17,13 @@ namespace Anfang.LogicDevices
         public Phasor(string label)
         {
             this.label = label;
+            inputType = "Analog";
+            outputType = "Boolean";
         }
 
         public override void UpdateOutput()
         {
-            if (input_complex_list.Count > 1)
+            if (input_complex_list.Count == 2)
             {
                 float phase_diff = MathF.Abs(RadsToDegs(input_complex_list[0].Phase) - RadsToDegs(input_complex_list[1].Phase));
                 if (phase_diff > 180)

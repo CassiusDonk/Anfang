@@ -8,6 +8,7 @@ namespace Anfang
 {
     public class BreakerLink
     {
+        public string discreteOutput { get; set; }
         public int brerakerID { get; set; }
 
     }

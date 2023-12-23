@@ -17,6 +17,8 @@ namespace Anfang.LogicDevices
         public Comparator(string label)
         {
             this.label = label;
+            inputType = "Analog";
+            outputType = "Boolean";
         }
 
         public override void UpdateOutput()

@@ -25,18 +25,21 @@ namespace Anfang.LogicDevices
             {
                 output = true;
             }
+            inputType = "Boolean";
+            outputType = "Boolean";
         }
 
         public override void UpdateOutput()
         {
-            if (input_bool == true)
+            if (input_bool_list[0] == true)
             {
                 output = false;
             }
-            if (input_bool == false)
+            if (input_bool_list[0] == false)
             {
                 output = true;
             }
+            input_bool_list.Clear();
         }
     }
 }

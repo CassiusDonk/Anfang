@@ -17,6 +17,8 @@ namespace Anfang.LogicDevices
         public AND(string label)
         {
             this.label = label;
+            inputType = "Boolean";
+            outputType = "Boolean";
         }
 
         public override void UpdateOutput()

@@ -164,7 +164,8 @@ namespace Anfang
                     logic_device.GetType() == invert |
                     logic_device.GetType() == or |
                     logic_device.GetType() == timer |
-                    logic_device.GetType() == phasor)
+                    logic_device.GetType() == phasor |
+                    logic_device.GetType() == discr)
                 {
                     if (logic_device.GetType() == timer) // set timer params
                     {
@@ -173,7 +174,7 @@ namespace Anfang
                         logic_device.sim_time_step = sim_time_step;
                     }
                     logic_device.UpdateOutput();
-                    while (true) // find next suitable logic device and connect to it
+                    while (n <= logic_devices.Count() - 1) // find next suitable logic device and connect to it
                     {
                         if (logic_devices[n].GetType() == discr |
                         logic_devices[n].GetType() == invert |

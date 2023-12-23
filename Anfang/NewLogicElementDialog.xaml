@@ -1,0 +1,52 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Anfang"
+        xmlns:InterfaceLinks="clr-namespace:Anfang.InterfaceLinks" x:Class="Anfang.NewLogicElementDialog"
+        mc:Ignorable="d"
+        Title="NewLogicElement" Height="250" Width="919" ResizeMode="NoResize">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="205*"/>
+            <ColumnDefinition Width="395*"/>
+            <ColumnDefinition Width="319*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="29*"/>
+            <RowDefinition Height="205*"/>
+        </Grid.RowDefinitions>
+        <ListBox x:Name="LogicOptionsList" Margin="10,3,10,10" SelectionChanged="LogicOptionsList_SelectionChanged" Grid.Row="1"/>
+        <Label Content="Выберите функцию:" VerticalAlignment="Top" Margin="10,0,10,0" Height="26"/>
+        <Label Content="Настройка логического блока" VerticalAlignment="Top" Height="26" Grid.Column="1" Margin="5,0,10,0"/>
+        <Label Content="Привязка входов для логического блока" VerticalAlignment="Top" Height="26" Grid.Column="2" Margin="10,0,10,0"/>
+        <ListBox x:Name="LinkOptionsList" Grid.Column="2" Margin="10,29,159,10" Grid.Row="1" MouseDoubleClick="LinkOptionsList_MouseDoubleClick"/>
+        <ListBox x:Name="SelectedLinksList" Grid.Column="2" Margin="160,29,10,10" Grid.Row="1" MouseDoubleClick="SelectedLinksList_MouseDoubleClick"/>
+        <Label Content="Существующие блоки" VerticalAlignment="Top" Height="26" Grid.Column="2" Margin="10,3,159,0" Grid.Row="1"/>
+        <Label Content="Выбранные привязки" VerticalAlignment="Top" Height="26" Grid.Column="2" Margin="0,3,10,0" Grid.Row="1" HorizontalAlignment="Right" Width="129"/>
+        <Button Content="Отмена..." Margin="197,0,10,10" Click="Button_Click" Grid.Column="1" Grid.Row="1" Height="31" VerticalAlignment="Bottom"/>
+        <Button x:Name="SaveBtn" Content="Добавить лог. блок" Margin="10,0,202,10" Click="SaveBtn_Click" Grid.Column="1" Grid.Row="1" Height="31" VerticalAlignment="Bottom"/>
+        <TextBox x:Name="Delay1Box" Margin="309,5,10,0" Text="{Binding value}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" Height="25" VerticalAlignment="Top">
+            <TextBox.DataContext>
+                <InterfaceLinks:IntParser/>
+            </TextBox.DataContext>
+        </TextBox>
+        <Label Content="Выдержка времени на срабатывание, мс" Margin="10,3,91,0" Grid.Column="1" Grid.Row="1" Height="29" VerticalAlignment="Top"/>
+        <TextBox x:Name="TripLevelBox" Margin="309,63,10,0" Text="{Binding value}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" Height="25" VerticalAlignment="Top">
+            <TextBox.DataContext>
+                <InterfaceLinks:FloatParser/>
+            </TextBox.DataContext>
+        </TextBox>
+        <Label Content="Уставка на срабатывание" Margin="10,61,105,0" Grid.Column="1" Grid.Row="1" Height="29" VerticalAlignment="Top"/>
+        <TextBox x:Name="Delay2Box" Margin="309,35,10,0" Text="{Binding value}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" Height="24" VerticalAlignment="Top">
+            <TextBox.DataContext>
+                <InterfaceLinks:IntParser/>
+            </TextBox.DataContext>
+        </TextBox>
+        <Label Content="Выдержка времени на возврат, мс" Margin="10,32,105,0" Grid.Column="1" Grid.Row="1" Height="29" VerticalAlignment="Top"/>
+        <Label Content="Название" Margin="10,90,183,0" Grid.Column="1" Grid.Row="1" Height="29" VerticalAlignment="Top"/>
+        <TextBox x:Name="LabelBox" Margin="225,93,10,0" Text="" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" Height="23" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

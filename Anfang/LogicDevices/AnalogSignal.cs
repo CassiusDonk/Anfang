@@ -17,6 +17,8 @@ namespace Anfang.LogicDevices
         public AnalogSignal(string label)
         {
             this.label = label;
+            inputType = "Complex32";
+            outputType = "Complex32";
         }
 
         public override void UpdateOutput()
