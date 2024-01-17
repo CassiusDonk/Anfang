@@ -480,14 +480,14 @@ namespace Anfang
 
         private void savepwsbtn_Click(object sender, RoutedEventArgs e)
         {
-            fileInteractions.SaveData(fileInteractions.PowersystemToString(powersysgrid_collection), @"C:\Users\Default\Documents\AnfangPowersystem.txt");
+            fileInteractions.SaveData(fileInteractions.PowersystemToString(powersysgrid_collection), @"\\AnfangPowersystem.txt");
             savepwsbtn_txt.Text = "Saved!";
             loadpwsbtn_txt.Text = "Load Powersystem   (Загрузить схему)";
         }
 
         private void loadpwsbtn_Click(object sender, RoutedEventArgs e)
         {
-            fileInteractions.ReconstructPowersystem(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangPowersystem.txt"), powersysgrid_collection);
+            fileInteractions.ReconstructPowersystem(fileInteractions.LoadData(@"\\AnfangPowersystem.txt"), powersysgrid_collection);
             loadpwsbtn_txt.Text = "Loaded!";
             savepwsbtn_txt.Text = "Save Powersystem (Сохранить схему)";
         }
@@ -504,14 +504,14 @@ namespace Anfang
 
         private void protsavebtn_Click(object sender, RoutedEventArgs e)
         {
-            fileInteractions.SaveData(fileInteractions.ProtectionDevicesToString(protectiongrid_collection), @"C:\Users\Default\Documents\AnfangProtections.txt");
+            fileInteractions.SaveData(fileInteractions.ProtectionDevicesToString(protectiongrid_collection), @"\\AnfangProtections.txt");
         }
 
         private void protloadbtn_Click(object sender, RoutedEventArgs e)
         {
             protectiongrid_collection.Clear();
             protections.Clear();
-            foreach (var item in fileInteractions.LoadProtections(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangProtections.txt")))
+            foreach (var item in fileInteractions.LoadProtections(fileInteractions.LoadData("\\AnfangProtections.txt")))
             {
                 protections.Add(item);
                 protectiongrid_collection.Add(item);

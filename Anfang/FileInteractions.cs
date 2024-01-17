@@ -14,8 +14,10 @@ namespace Anfang
     class FileInteractions
     {
         CultureInfo format = new CultureInfo("en-US");
-        public void SaveData(List<string> Data, string path)
+        public void SaveData(List<string> Data, string filename)
         {
+            string path = AppContext.BaseDirectory;
+            path += filename;
             if (!File.Exists(path))
             {
                 using (StreamWriter sw = File.CreateText(path))
@@ -39,8 +41,10 @@ namespace Anfang
             }
         }
 
-        public List<string> LoadData(string path)
+        public List<string> LoadData(string filename)
         {
+            string path = AppContext.BaseDirectory;
+            path += filename;
             List<string> data = new List<string>();
 
             using (StreamReader sr = File.OpenText(path))
