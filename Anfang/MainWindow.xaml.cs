@@ -510,8 +510,10 @@ namespace Anfang
         private void protloadbtn_Click(object sender, RoutedEventArgs e)
         {
             protectiongrid_collection.Clear();
+            protections.Clear();
             foreach (var item in fileInteractions.LoadProtections(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangProtections.txt")))
             {
+                protections.Add(item);
                 protectiongrid_collection.Add(item);
             }
         }
@@ -523,9 +525,12 @@ namespace Anfang
             if (protectiongrid.SelectedItem != null)
             {
                 ProtectionDevice original = protectiongrid.SelectedItem as ProtectionDevice;
-                protectionEditor.protectionDevice = original.CreateCopy(original);
-                protectionEditor.LinkProtectionDevice();
-                protectionEditor.ShowDialog();
+                if (original != null)
+                {
+                    protectionEditor.protectionDevice = original.CreateCopy(original);
+                    protectionEditor.LinkProtectionDevice();
+                    protectionEditor.ShowDialog();
+                }
             }
             if (protectionEditor.DialogResult == true)
             {

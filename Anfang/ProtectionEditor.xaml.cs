@@ -48,6 +48,7 @@ namespace Anfang
             LogicCollection.Clear();
             BreakersCollection.Clear();
             EditElementBtn.IsEnabled = false;
+            AddElementBtn.IsEnabled = false;
         }
 
         public void LinkProtectionDevice()
@@ -135,6 +136,11 @@ namespace Anfang
                 if (FunctionsGrid.SelectedItem.GetType().ToString().Contains("ProtectionFunction"))
                 {
                     selectedFunction = FunctionsCollection[FunctionsCollection.IndexOf((ProtectionFunctionV2)FunctionsGrid.SelectedItem)];
+                    AddElementBtn.IsEnabled = true;
+                }
+                else
+                {
+                    AddElementBtn.IsEnabled = false;
                 }
             }
             foreach (var item in selectedFunction.LogicDevices)

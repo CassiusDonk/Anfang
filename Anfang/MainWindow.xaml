@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Anfang"
         xmlns:Powersystem="clr-namespace:Anfang.Powersystem" x:Class="Anfang.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1080" Width="1920" SizeToContent="Manual" HorizontalAlignment="Left" VerticalAlignment="Top">
+        Title="MainWindow" Height="1080" Width="1920" SizeToContent="Manual" ResizeMode="CanResize" HorizontalAlignment="Left" VerticalAlignment="Top">
     <Grid>
         <Button Content="CALCULATE (РАСЧЁТ)" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="30" Width="150" Click="Button_Click" Background="#FFFFE800" FontSize="14" FontWeight="Bold"/>
         <Canvas x:Name="Canvas" Margin="10,75,960,0" Height="521" Background="#FFC5C5C5" Initialized="Canvas_Initialized" Loaded="Canvas_Loaded" VerticalAlignment="Top" MouseRightButtonDown="Canvas_MouseRightButtonDown" PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown" PreviewMouseMove="Canvas_PreviewMouseMove" MouseLeave="Canvas_MouseLeave"/>
