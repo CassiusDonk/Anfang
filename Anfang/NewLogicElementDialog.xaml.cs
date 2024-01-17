@@ -22,6 +22,7 @@ namespace Anfang
     /// </summary>
     public partial class NewLogicElementDialog : Window
     {
+        bool editing = false;
         private static readonly ObservableCollection<string> LogicOptionsCollection = new ObservableCollection<string>();
         private static readonly ObservableCollection<string> LinkOptionsCollection = new ObservableCollection<string>();
         private static readonly ObservableCollection<string> SelectedLinksCollection = new ObservableCollection<string>();
@@ -34,8 +35,8 @@ namespace Anfang
 
         private List<ExtendedLabel> ExtendedLabels = new List<ExtendedLabel>();
 
-        public BaseLogicV2 LogicDevice = new BaseLogicV2();
-        public NewLogicElementDialog()
+        public BaseLogicV2 LogicElement = new BaseLogicV2();
+        public NewLogicElementDialog(ObservableCollection<BaseLogicV2> LogicDevices)
         {
             InitializeComponent();
             LogicOptionsList.ItemsSource = LogicOptionsCollection;
@@ -58,20 +59,70 @@ namespace Anfang
             LinkOptionsList.ItemsSource = LinkOptionsCollection;
             SelectedLinksList.ItemsSource = SelectedLinksCollection;
             SelectedLinksCollection.Clear();
+
+            LoadLinkOptions(LogicDevices);
         }
 
-        public void LoadLinkOptions(ObservableCollection<BaseLogicV2> LogicDevices)
+        public NewLogicElementDialog(ObservableCollection<BaseLogicV2> LogicDevices, BaseLogicV2 logicElement)
+        {
+            InitializeComponent();
+            this.LogicElement = logicElement;
+            editing = true;
+            LogicOptionsList.ItemsSource = LogicOptionsCollection;
+            LogicOptionsCollection.Clear();
+            LogicOptionsCollection.Add("Лог. И");
+            LogicOptionsCollection.Add("Лог. ИЛИ");
+            LogicOptionsCollection.Add("Лог. Инверсия");
+            LogicOptionsCollection.Add("Компаратор");
+            LogicOptionsCollection.Add("Сравнение фаз");
+            LogicOptionsCollection.Add("Выдержка на сраб.");
+            LogicOptionsCollection.Add("Аналог. выход");
+            LogicOptionsCollection.Add("Дискрет. выход");
+            LogicOptionsCollection.Add("Аналог. вход");
+            LogicOptionsCollection.Add("Дискрет. вход");
+
+            Delay1Box.IsEnabled = false;
+            Delay2Box.IsEnabled = false;
+            TripLevelBox.IsEnabled = false;
+
+            LoadLinkOptions(LogicDevices);
+
+            LinkOptionsList.ItemsSource = LinkOptionsCollection;
+            SelectedLinksList.ItemsSource = SelectedLinksCollection;
+            SelectedLinksCollection.Clear();
+            foreach (var inputLink in logicElement.InputLinks)
+            {
+                ExtendedLabel link = ExtendedLabels.Find(x => x.Label == inputLink);
+                if (link != null)
+                {
+                    SelectedLinksCollection.Add(link.LinkLabel);
+                }
+            }
+            LabelBox.Text = logicElement.Label;
+
+            string logicElementType = logicElement.GetType().ToString();
+
+            if (logicElementType == "Anfang.LogicDevices.ANDV2") { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Лог. И")]; }
+            if (logicElementType == "Anfang.LogicDevices.ORV2") { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Лог. ИЛИ")]; }
+            if (logicElementType == "Anfang.LogicDevices.InvertV2") { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Лог. Инверсия")]; }
+            if (logicElementType == "Anfang.LogicDevices.ComparatorV2") { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Компаратор")]; }
+            if (logicElementType == "Anfang.LogicDevices.PhasorV2") { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Сравнение фаз")]; }
+            if (logicElementType == "Anfang.LogicDevices.TimerV2") { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Выдержка на сраб.")]; }
+            if (logicElementType == "Anfang.LogicDevices.AnalogSignalV2" & logicElement.IsOutputOfFunction == true) { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Аналог. выход")]; }
+            if (logicElementType == "Anfang.LogicDevices.DiscrSignalV2" & logicElement.IsOutputOfFunction == true) { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Дискрет. выход")]; }
+            if (logicElementType == "Anfang.LogicDevices.AnalogSignalV2" & logicElement.IsOutputOfFunction == false) { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Аналог. вход")]; }
+            if (logicElementType == "Anfang.LogicDevices.DiscrSignalV2" & logicElement.IsOutputOfFunction == false) { LogicOptionsList.SelectedItem = LogicOptionsCollection[LogicOptionsCollection.IndexOf("Дискрет. вход")]; }
+        }
+
+        private void LoadLinkOptions(ObservableCollection<BaseLogicV2> LogicDevices)
         {
             LinkOptionsCollection.Clear();
             ExtendedLabels.Clear();
             foreach (var logicDevice in LogicDevices)
             {
-                string type = "Undefined";
-                if (logicDevice.OutputBool == true) { type = "Дискрет"; }
-                else { type = "Числовой"; }
-                string LinkLabel = $"{logicDevice.Label}, ({type})";
-                LinkOptionsCollection.Add(LinkLabel);
-                ExtendedLabels.Add(new ExtendedLabel() { Label = logicDevice.Label, LinkLabel = LinkLabel });
+                logicDevice.BuildExtendedLabels();
+                LinkOptionsCollection.Add(logicDevice.ExtendedLabel);
+                ExtendedLabels.Add(new ExtendedLabel() { Label = logicDevice.Label, LinkLabel = logicDevice.ExtendedLabel });
             }
         }
         private void LinkOptionsList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -133,52 +184,53 @@ namespace Anfang
                 {
                     if (LogicOptionsList.SelectedItem.ToString() == "Лог. И")
                     {
-                        LogicDevice = new ANDV2();
+                        LogicElement = new ANDV2();
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Лог. ИЛИ")
                     {
-                        LogicDevice = new ORV2();
+                        LogicElement = new ORV2();
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Лог. Инверсия")
                     {
-                        LogicDevice = new InvertV2();
+                        LogicElement = new InvertV2();
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Компаратор")
                     {
-                        LogicDevice = new ComparatorV2() { tripLevel = triplevel };
+                        LogicElement = new ComparatorV2() { tripLevel = triplevel };
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Сравнение фаз")
                     {
-                        LogicDevice = new PhasorV2();
+                        LogicElement = new PhasorV2();
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Выдержка на сраб.")
                     {
-                        LogicDevice = new TimerV2() { TimerRiseDelay = delay1 };
+                        LogicElement = new TimerV2() { TimerRiseDelay = delay1 };
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Аналог. выход")
                     {
-                        LogicDevice = new AnalogSignalV2();
-                        LogicDevice.IsOutputOfFunction = true;
+                        LogicElement = new AnalogSignalV2();
+                        LogicElement.IsOutputOfFunction = true;
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Дискрет. выход")
                     {
-                        LogicDevice = new DiscrSignalV2();
-                        LogicDevice.IsOutputOfFunction = true;
+                        LogicElement = new DiscrSignalV2();
+                        LogicElement.IsOutputOfFunction = true;
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Аналог. вход")
                     {
-                        LogicDevice = new AnalogSignalV2();
+                        LogicElement = new AnalogSignalV2();
                     }
                     if (LogicOptionsList.SelectedItem.ToString() == "Дискрет. вход")
                     {
-                        LogicDevice = new DiscrSignalV2();
+                        LogicElement = new DiscrSignalV2();
                     }
-                    LogicDevice.Label = LabelBox.Text;
-                    foreach (var ExtendedLabel in ExtendedLabels)
+                    LogicElement.Label = LabelBox.Text;
+                    foreach (var selectedLink in SelectedLinksCollection)
                     {
-                        if (SelectedLinksCollection.Contains(ExtendedLabel.LinkLabel))
+                        ExtendedLabel link = ExtendedLabels.Find(x => x.LinkLabel == selectedLink);
+                        if (link != null)
                         {
-                            LogicDevice.InputLinks.Add(ExtendedLabel.Label);
+                            LogicElement.InputLinks.Add(ExtendedLabels.Find(x => x.LinkLabel == selectedLink).Label);
                         }
                     }
                     DialogResult = true;
@@ -222,6 +274,21 @@ namespace Anfang
 
             // All dependency objects are valid
             return true;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            string logicElementType = LogicElement.GetType().ToString();
+            if (logicElementType == "Anfang.LogicDevices.TimerV2")
+            {
+                TimerV2 timerV2 = LogicElement as TimerV2;
+                Delay1Box.Text = timerV2.TimerRiseDelay.ToString();
+            }
+            if (logicElementType == "Anfang.LogicDevices.ComparatorV2")
+            {
+                ComparatorV2 comparatorV2 = LogicElement as ComparatorV2;
+                TripLevelBox.Text = comparatorV2.tripLevel.ToString();
+            }
         }
     }
 }

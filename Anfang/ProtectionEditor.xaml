@@ -43,7 +43,7 @@
             </DataGrid.DataContext>
         </DataGrid>
         <Label Content="Привязки выходных реле" Margin="10,7,10,0" VerticalAlignment="Top" FontSize="14" Grid.Column="4" Height="29"/>
-        <DataGrid x:Name="LogicGrid" Margin="10,122,10,46" Grid.Column="3" Grid.RowSpan="2">
+        <DataGrid x:Name="LogicGrid" Margin="10,122,10,46" Grid.Column="3" Grid.RowSpan="2" SelectionChanged="LogicGrid_SelectionChanged">
             <DataGrid.DataContext>
                 <LogicDevices:BaseLogic/>
             </DataGrid.DataContext>
@@ -58,6 +58,7 @@
         <Button x:Name="SaveBtn" Content="Сохранить" Margin="10,11,10,0" VerticalAlignment="Top" Height="47" Click="SaveBtn_Click" Grid.Column="4" Grid.Row="1"/>
         <Button x:Name="ProcessLinks" Content="Обработать привязки" Margin="10,63,10,0" VerticalAlignment="Top" Height="47" Grid.Column="4" Grid.Row="1" Click="ProcessLinks_Click"/>
         <Button x:Name="SaveLogic" Content="Сохранить логику функции" Margin="10,115,10,0" VerticalAlignment="Top" Height="47" Grid.Column="4" Grid.Row="1" Click="SaveLogic_Click"/>
-        <Button x:Name="AddElementBtn" Content="Добавить логический блок" Margin="10,36,10,0" VerticalAlignment="Top" Height="47" Grid.Column="3" Click="AddElementBtn_Click"/>
+        <Button x:Name="AddElementBtn" Content="Добавить..." Margin="10,36,155,0" VerticalAlignment="Top" Height="47" Grid.Column="3" Click="AddElementBtn_Click"/>
+        <Button x:Name="EditElementBtn" Content="Редактировать..." Margin="159,36,6,0" VerticalAlignment="Top" Height="47" Grid.Column="3" Click="EditElementBtn_Click"/>
     </Grid>
 </Window>

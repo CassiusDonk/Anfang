@@ -19,5 +19,10 @@ namespace Anfang
 
         }
 
+        public string ConvertToString()
+        {
+            string result = id.ToString() + ";" + phase + ";" + label;
+            return result;
+        }
     }
 }

@@ -15,6 +15,14 @@ namespace Anfang.LogicDevices
             InputCount = 1;
             OutputsAreBool = true;
         }
+        public DiscrSignalV2(List<string> InputLinks)
+        {
+            InputsAreBool = true;
+            InputCountFixed = true;
+            InputCount = 1;
+            OutputsAreBool = true;
+            this.InputLinks = InputLinks;
+        }
 
         public override void ProcessInputs()
         {

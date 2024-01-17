@@ -16,6 +16,15 @@ namespace Anfang.LogicDevices
             InputCount = 1;
             OutputsAreBool = true;
         }
+        public TimerV2(List<string> InputLinks, int TimerRiseDelay)
+        {
+            InputsAreBool = true;
+            InputCountFixed = true;
+            InputCount = 1;
+            OutputsAreBool = true;
+            this.InputLinks = InputLinks;
+            this.TimerRiseDelay = TimerRiseDelay;
+        }
 
         public override void ProcessInputs()
         {
@@ -43,5 +52,22 @@ namespace Anfang.LogicDevices
                 }
             }
         }
+        public override List<string> ConvertToString()
+        {
+            List<string> result = new List<string>();
+            result.Add("LogicDeviceStart");
+            result.Add(Label);
+            result.Add(this.GetType().ToString());
+            result.Add("InputLinksStart");
+            foreach (var inputLink in InputLinks)
+            {
+                result.Add(inputLink);
+            }
+            result.Add("InputLinksEnd");
+            result.Add(TimerRiseDelay.ToString());
+            result.Add("LogicDeviceEnd");
+            return result;
+        }
+
     }
 }

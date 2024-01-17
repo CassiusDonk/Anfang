@@ -14,6 +14,13 @@ namespace Anfang.LogicDevices
             InputCountFixed = false;
             OutputsAreBool = true;
         }
+        public ORV2(List<string> InputLinks)
+        {
+            InputsAreBool = true;
+            InputCountFixed = false;
+            OutputsAreBool = true;
+            this.InputLinks = InputLinks;
+        }
 
         public override void ProcessInputs()
         {

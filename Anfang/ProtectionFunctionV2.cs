@@ -91,5 +91,36 @@ namespace Anfang
             }
             return type;
         }
+
+        public List<string> ConvertToString()
+        {
+            List<string> result = new List<string>();
+            result.Add("ProtectionFunctionStart");
+            result.Add(Label);
+            result.Add(Description);
+            foreach (var logicDevice in LogicDevices)
+            {
+                result.AddRange(logicDevice.ConvertToString());
+            }
+            result.Add("ProtectionFunctionEnd");
+            return result;
+        }
+        public List<string> ConvertToString2()
+        {
+            UniversalSaver universalSaver = new UniversalSaver();
+            List<string> result = new List<string>();
+            result.Add("ProtectionFunctionBegin");
+            List<string> protectionFunctionDump = universalSaver.DumpToText(this);
+            result.AddRange(protectionFunctionDump);
+            foreach (var logicDevice in LogicDevices)
+            {
+                result.Add("LogicDeviceBegin");
+                List<string> logicDeviceDump = universalSaver.DumpToText(logicDevice);
+                result.AddRange(logicDeviceDump);
+                result.Add("LogicDeviceEnd");
+            }
+            result.Add("ProtectionFunctionEnd");
+            return result;
+        }
     }
 }

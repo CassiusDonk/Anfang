@@ -504,12 +504,16 @@ namespace Anfang
 
         private void protsavebtn_Click(object sender, RoutedEventArgs e)
         {
-            //fileInteractions.SaveData(fileInteractions.ProtectionsToString(protectiongrid_collection), @"C:\Users\Default\Documents\AnfangProtections.txt");
+            fileInteractions.SaveData(fileInteractions.ProtectionDevicesToString(protectiongrid_collection), @"C:\Users\Default\Documents\AnfangProtections.txt");
         }
 
         private void protloadbtn_Click(object sender, RoutedEventArgs e)
         {
-            //fileInteractions.ReconstructProtections(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangProtections.txt"), protectiongrid_collection);
+            protectiongrid_collection.Clear();
+            foreach (var item in fileInteractions.LoadProtections(fileInteractions.LoadData(@"C:\Users\Default\Documents\AnfangProtections.txt")))
+            {
+                protectiongrid_collection.Add(item);
+            }
         }
 
         private void protconfigbtn_Click(object sender, RoutedEventArgs e)

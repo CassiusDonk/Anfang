@@ -150,6 +150,176 @@ namespace Anfang
             return data;
         }
 
+        public List<string> ProtectionDevicesToString(ObservableCollection<ProtectionDevice> protectiongrid_collection)
+        {
+            List<string> data = new List<string>();
+
+            foreach (ProtectionDevice prot in protectiongrid_collection)
+            {
+                data.AddRange(prot.ConvertToString());
+            }
+            return data;
+        }
+
+        public List<ProtectionDevice> LoadProtections(List<string> data)
+        {
+            List<ProtectionDevice> LoadedProtections = new List<ProtectionDevice>();
+            ProtectionDevice loadedProtection = new ProtectionDevice();
+            ProtectionFunctionV2 loadedFunction = new ProtectionFunctionV2();
+            int index = 0;
+
+            bool loadingAnalogs = false;
+            bool loadingDiscretes = false;
+            bool loadingBreakers = false;
+            bool loadingFunction = false;
+
+            foreach (string line in data)
+            {
+                if (line == "ProtectionDeviceStart")
+                {
+                    loadedProtection = new ProtectionDevice();
+                    loadedProtection.label = data[index + 1];
+                    loadedProtection.description = data[index + 2];
+                }
+
+                if (line == "AnalogInputLinksStart") { loadingAnalogs = true; }
+                if (line == "AnalogInputLinksEnd") { loadingAnalogs = false; }
+                if (loadingAnalogs & line != "AnalogInputLinksStart")
+                {
+                    List<string> AnalogInputLinkInfo = SplitString(line);
+                    int id = TryToParseInt(AnalogInputLinkInfo[0]);
+                    int side = TryToParseInt(AnalogInputLinkInfo[1]);
+                    bool isVoltage = false;
+                    if (AnalogInputLinkInfo[2] == "True") { isVoltage = true; }
+                    string phase = AnalogInputLinkInfo[3];
+                    string label = AnalogInputLinkInfo[4];
+                    AnalogInputLink analogInputLink = new AnalogInputLink() { id = id, isVoltage = isVoltage, side = side, phase = phase, label = label };
+                    loadedProtection.analogInputLinks.Add(analogInputLink);
+                }
+
+                if (line == "DiscreteInputLinksStart") { loadingDiscretes = true; }
+                if (line == "DiscreteInputLinksEnd") { loadingDiscretes = false; }
+                if (loadingDiscretes & line != "DiscreteInputLinksStart")
+                {
+                    List<string> DiscreteInputLinkInfo = SplitString(line);
+                    int id = TryToParseInt(DiscreteInputLinkInfo[0]);
+                    string phase = DiscreteInputLinkInfo[1];
+                    string label = DiscreteInputLinkInfo[2];
+                    DiscreteInputLink discreteInputLink = new DiscreteInputLink() { id = id, phase = phase, label = label };
+                    loadedProtection.discreteInputLinks.Add(discreteInputLink);
+                }
+
+                if (line == "BreakerLinksStart") { loadingBreakers = true; }
+                if (line == "BreakerLinksEnd") { loadingBreakers = false; }
+                if (loadingBreakers & line != "BreakerLinksStart")
+                {
+                    List<string> BreakerLinkInfo = SplitString(line);
+                    string discreteOutput = BreakerLinkInfo[0];
+                    int breakerID = TryToParseInt(BreakerLinkInfo[1]);
+                    BreakerLink breakerLink = new BreakerLink() { brerakerID = breakerID, discreteOutput = discreteOutput };
+                    loadedProtection.breakerLinks.Add(breakerLink);
+                }
+
+                if (line == "ProtectionFunctionStart")
+                {
+                    loadingFunction = true;
+                    loadedFunction = new ProtectionFunctionV2();
+                    loadedFunction.Label = data[index + 1];
+                    loadedFunction.Description = data[index + 2];
+                }
+                if (line == "ProtectionFunctionEnd")
+                {
+                    loadingFunction = false;
+                    loadedProtection.protectionFunctions.Add(loadedFunction);
+                }
+                if (loadingFunction)
+                {
+                    if (line == "LogicDeviceStart")
+                    {
+                        Type LogicDeviceType = GetType(data[index + 2]);
+                        int inputLinksStart = data.FindIndex(index, x => x == "InputLinksStart");
+                        int inputLinksEnd = data.FindIndex(index, x => x == "InputLinksEnd");
+                        List<string> inputLinks = new List<string>();
+                        for (int i = inputLinksStart + 1; i < inputLinksEnd; i++)
+                        {
+                            inputLinks.Add(data[i]);
+                        }
+                        int logicDeviceStart = data.FindIndex(index, x => x == "LogicDeviceStart");
+                        int logicDeviceEnd = data.FindIndex(index, x => x == "LogicDeviceEnd");
+                        if (data[index + 2] == "Anfang.LogicDevices.TimerV2")
+                        {
+                            int timerRiseDelay = TryToParseInt(data[logicDeviceEnd - 1]);
+                            LogicDevices.BaseLogicV2 LogicDevice = Activator.CreateInstance(LogicDeviceType, inputLinks, timerRiseDelay) as Anfang.LogicDevices.BaseLogicV2;
+                            LogicDevice.Label = data[logicDeviceStart + 1];
+                            LogicDevice.IsOutputOfFunction = false;
+                            if (data[logicDeviceEnd - 1] == "True") { LogicDevice.IsOutputOfFunction = true; }
+                            loadedFunction.LogicDevices.Add(LogicDevice);
+                        }
+                        if (data[index + 2] == "Anfang.LogicDevices.ComparatorV2")
+                        {
+                            float tripLevel = TryToParseFloat(data[logicDeviceEnd - 1]);
+                            LogicDevices.BaseLogicV2 LogicDevice = Activator.CreateInstance(LogicDeviceType, inputLinks, tripLevel) as Anfang.LogicDevices.BaseLogicV2;
+                            LogicDevice.Label = data[logicDeviceStart + 1];
+                            if (data[logicDeviceEnd - 1] == "True") { LogicDevice.IsOutputOfFunction = true; }
+                            loadedFunction.LogicDevices.Add(LogicDevice);
+                        }
+                        if (data[index + 2] != "Anfang.LogicDevices.ComparatorV2" & data[index + 2] != "Anfang.LogicDevices.TimerV2")
+                        {
+                            LogicDevices.BaseLogicV2 LogicDevice = Activator.CreateInstance(LogicDeviceType, inputLinks) as Anfang.LogicDevices.BaseLogicV2;
+                            LogicDevice.Label = data[logicDeviceStart + 1];
+                            if (data[logicDeviceEnd - 1] == "True") { LogicDevice.IsOutputOfFunction = true; }
+                            loadedFunction.LogicDevices.Add(LogicDevice);
+                        }
+                    }
+                }
+                if (line == "ProtectionDeviceEnd")
+                {
+                    LoadedProtections.Add(loadedProtection);
+                }
+                index++;
+            }
+
+            return LoadedProtections;
+
+            Type GetType(string strFullyQualifiedName)
+            {
+                Type type = Type.GetType(strFullyQualifiedName);
+                if (type != null)
+                {
+                    return type;
+                }
+                foreach (System.Reflection.Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    type = asm.GetType(strFullyQualifiedName);
+                    if (type != null)
+                    {
+                        return type;
+                    }
+                }
+                return type;
+            }
+
+            List<string> SplitString(string input)
+            {
+                List<string> output = new List<string>();
+                string word = "";
+                foreach (char character in input)
+                {
+                    if (character.ToString() == ";")
+                    {
+                        output.Add(word);
+                        word = "";
+                    }
+                    else
+                    {
+                        word += character;
+                    }
+                }
+                output.Add(word);
+                return output;
+            }
+        }
+
         public void ReconstructProtections(List<string> data, ObservableCollection<Protection> protectiongrid_collection)
         {
 

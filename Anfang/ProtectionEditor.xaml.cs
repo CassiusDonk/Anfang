@@ -47,6 +47,7 @@ namespace Anfang
             FunctionsCollection.Clear();
             LogicCollection.Clear();
             BreakersCollection.Clear();
+            EditElementBtn.IsEnabled = false;
         }
 
         public void LinkProtectionDevice()
@@ -148,15 +149,39 @@ namespace Anfang
             {
                 if (FunctionsGrid.SelectedItem.GetType().ToString().Contains("ProtectionFunction"))
                 {
-                    NewLogicElementDialog newLogicElementDialog = new NewLogicElementDialog();
+                    NewLogicElementDialog newLogicElementDialog = new NewLogicElementDialog(LogicCollection);
                     newLogicElementDialog.Owner = this;
-                    newLogicElementDialog.LoadLinkOptions(LogicCollection);
                     newLogicElementDialog.ShowDialog();
                     if (newLogicElementDialog.DialogResult == true)
                     {
-                        LogicCollection.Add(newLogicElementDialog.LogicDevice);
+                        LogicCollection.Add(newLogicElementDialog.LogicElement);
                     }
                 }
+            }
+        }
+
+        private void EditElementBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (FunctionsGrid.SelectedItem != null)
+            {
+                if (LogicGrid.SelectedItem != null)
+                {
+                    NewLogicElementDialog newLogicElementDialog = new NewLogicElementDialog(LogicCollection, LogicGrid.SelectedItem as BaseLogicV2);
+                    newLogicElementDialog.Owner = this;
+                    newLogicElementDialog.ShowDialog();
+                    if (newLogicElementDialog.DialogResult == true)
+                    {
+                        LogicCollection[LogicGrid.SelectedIndex] = newLogicElementDialog.LogicElement;
+                    }
+                }
+            }
+        }
+
+        private void LogicGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LogicGrid.SelectedItem != null)
+            {
+                EditElementBtn.IsEnabled = true;
             }
         }
     }

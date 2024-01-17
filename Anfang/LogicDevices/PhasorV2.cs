@@ -15,6 +15,14 @@ namespace Anfang.LogicDevices
             InputCount = 2;
             OutputsAreBool = true;
         }
+        public PhasorV2(List<string> InputLinks)
+        {
+            InputsAreBool = true;
+            InputCountFixed = true;
+            InputCount = 2;
+            OutputsAreBool = true;
+            this.InputLinks = InputLinks;
+        }
 
         public override void ProcessInputs()
         {

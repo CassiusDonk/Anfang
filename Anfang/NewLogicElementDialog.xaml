@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Anfang"
         xmlns:InterfaceLinks="clr-namespace:Anfang.InterfaceLinks" x:Class="Anfang.NewLogicElementDialog"
         mc:Ignorable="d"
-        Title="NewLogicElement" Height="250" Width="919" ResizeMode="NoResize">
+        Title="NewLogicElement" Height="250" Width="919" ResizeMode="NoResize" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="205*"/>

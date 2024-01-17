@@ -8,6 +8,11 @@ namespace Anfang
 {
     public class AnalogInputLink
     {
+        public override string ToString()
+        {
+            string result = $"{id},{side},{isVoltage},{phase},{label}";
+            return result;
+        }
         public int id { get; set; }
 
         public int side { get; set; }
@@ -23,5 +28,10 @@ namespace Anfang
 
         }
 
+        public string ConvertToString()
+        {
+            string result = id.ToString() + ";" + side.ToString() + ";" + isVoltage.ToString() + ";" + phase + ";" + label;
+            return result;
+        }
     }
 }

@@ -14,6 +14,13 @@ namespace Anfang.LogicDevices
             InputCountFixed = false;
             OutputsAreBool = true;
         }
+        public ANDV2(List<string> InputLinks)
+        {
+            InputsAreBool = true;
+            InputCountFixed = false;
+            OutputsAreBool = true;
+            this.InputLinks = InputLinks;
+        }
         public override void ProcessInputs()
         {
             if (InputsBool.Contains(false))

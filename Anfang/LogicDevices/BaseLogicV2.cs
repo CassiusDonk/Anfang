@@ -5,12 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics;
 using System.Collections.ObjectModel;
+using System.Reflection;
 
 namespace Anfang.LogicDevices
 {
     public class BaseLogicV2
     {
         public string Label { get; set; }
+        public string ExtendedLabel;
 
         //  Inputs
         public List<string> InputLinks = new List<string>();
@@ -39,6 +41,22 @@ namespace Anfang.LogicDevices
             IsOutputOfFunction = false;
         }
 
+        public BaseLogicV2(List<string> InputLinks)
+        {
+            InputsComplex32.CollectionChanged += InputsComplex32_CollectionChanged;
+            InputsBool.CollectionChanged += InputsBool_CollectionChanged;
+            IsOutputOfFunction = false;
+            this.InputLinks = InputLinks;
+        }
+
+        public void BuildExtendedLabels()
+        {
+            string type = "Undefined";
+            if (this.OutputsAreBool == true) { type = "Дискрет"; }
+            else { type = "Числовой"; }
+            this.ExtendedLabel = $"{this.Label}, ({type})";
+        }
+
         //  This enforces the ammount of inputs to be always equal to the allowed number if it is specified.
         private void InputsBool_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -58,5 +76,23 @@ namespace Anfang.LogicDevices
         }
 
         public virtual void ProcessInputs() { }
+
+        public virtual List<string> ConvertToString()
+        {
+
+            List<string> result = new List<string>();
+            result.Add("LogicDeviceStart");
+            result.Add(Label);
+            result.Add(this.GetType().ToString());
+            result.Add("InputLinksStart");
+            foreach (var inputLink in InputLinks)
+            {
+                result.Add(inputLink);
+            }
+            result.Add("InputLinksEnd");
+            result.Add(IsOutputOfFunction.ToString());
+            result.Add("LogicDeviceEnd");
+            return result;
+        }
     }
 }
